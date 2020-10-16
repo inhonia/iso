@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+.vs
+bin
+framework/Release
+framework/tggp - auto pack
+framework/tggp - no chroma auto pack
+framework/intermediate
+*.ipch
+
+
