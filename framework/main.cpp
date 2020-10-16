@@ -49,10 +49,12 @@ bool c_base_weapon::can_shoot(c_base_player* local)
 }
 
 namespace utilities {
-	void utilities::vector_transform(const vec3_t& some, const matrix3x4_t& matrix, vec3_t& out) {
-		out[0] = some.dot((const vec3_t&)matrix[0]) + matrix[0][3];
-		out[1] = some.dot((const vec3_t&)matrix[1]) + matrix[1][3];
-		out[2] = some.dot((const vec3_t&)matrix[2]) + matrix[2][3];
+	void utilities::vector_transform(const vec3_t& in, const matrix3x4_t& matrix, vec3_t& out) {
+		out = {
+			in.dot(vec3_t(matrix[0][0], matrix[0][1], matrix[0][2])) + matrix[0][3],
+			in.dot(vec3_t(matrix[1][0], matrix[1][1], matrix[1][2])) + matrix[1][3],
+			in.dot(vec3_t(matrix[2][0], matrix[2][1], matrix[2][2])) + matrix[2][3]
+		};
 	}
 	vec3_t utilities::angle_vector(vec3_t meme) {
 		auto sy = sin(meme.y / 180.f * static_cast<float>(PI));
@@ -228,7 +230,7 @@ namespace utilities {
 		if (!entity->setup_bones(matrix, 128, 0x100, 0))
 			return vec3_t();
 
-		int  hitbox_set_index = *(int*)((DWORD)hdr + 0xB0);
+		int hitbox_set_index = *(int*)((DWORD)hdr + 0xB0);
 		if (!hitbox_set_index) return vec3_t();
 
 		mstudiohitboxset_t* set = (mstudiohitboxset_t*)(((PBYTE)hdr) + hitbox_set_index);
@@ -241,6 +243,9 @@ namespace utilities {
 
 		vec3_t center = (min + max) * 0.5f;
 		vec3_t vhitbox;
+		
+		if (!center.validate())
+			return vec3_t();
 
 		utilities::vector_transform(center, matrix[box->bone], vhitbox);
 

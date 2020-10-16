@@ -199,6 +199,11 @@ public:
 		return (x * x + y * y + z * z);
 	}
 
+	bool validate()
+	{
+		return (isnormal(x) && isnormal(y) && isnormal(z));
+	}
+
 };
 
 inline void vec3_t_subtract(const vec3_t& a, const vec3_t& b, vec3_t& result)
