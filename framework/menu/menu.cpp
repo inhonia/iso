@@ -766,110 +766,6 @@ void c_menu::slider(int max, std::string name, int* item, std::string suffix, in
 	y_offset += 30;
 }
 
-void c_menu::slider(int min, int max, std::string name, int* item, std::string suffix, int step)
-{
-	if (groupbox_bottom <= y_offset + 30)
-		return;
-	float SliderSize = 125; // 163
-	float _pixel_value = *item >= (min + max) / 2 ? ((min + max) / SliderSize) : ((min - max) / SliderSize);
-	if (c_menu::get().menu_opened) {
-		if (GetAsyncKeyState(VK_LBUTTON) && mouse_in_params(x_offset + 29, y_offset + 14, SliderSize + 1, 10) && !combobox_open)
-			*item = abs(mouse_pos().x - (x_offset + 29)) * _pixel_value;
-
-		static bool pressed_subtract = false;
-		static bool pressed_add = false;
-
-		/*
-		subtract
-		*/
-
-		if (!GetAsyncKeyState(VK_LBUTTON) && mouse_in_params(x_offset + 21, y_offset + 12, 8, 10))
-		{
-			if (pressed_subtract)
-				*item -= step;
-			pressed_subtract = false;
-		}
-
-		if (GetAsyncKeyState(VK_LBUTTON) && mouse_in_params(x_offset + 21, y_offset + 12, 8, 10) && !pressed_subtract)
-			pressed_subtract = true;
-
-		/*
-		add
-		*/
-
-		if (!GetAsyncKeyState(VK_LBUTTON) && mouse_in_params(x_offset + 22 + SliderSize, y_offset + 12, 15, 10))
-		{
-			if (pressed_add)
-				*item += step;
-			pressed_add = false;
-		}
-
-		if (GetAsyncKeyState(VK_LBUTTON) && mouse_in_params(x_offset + 22 + SliderSize, y_offset + 12, 15, 10) && !pressed_add)
-			pressed_add = true;
-
-		if (*item > max) {
-			*item = max;
-		}
-
-		if (*item < min) {
-			*item = min;
-		}
-
-	}
-
-	std::string namedisplay;
-	namedisplay += name.c_str();
-	namedisplay += " (";
-	namedisplay += std::to_string(*item);
-	if (suffix.size() > 0) {
-		namedisplay += " " + suffix;
-	}
-	namedisplay += ")";
-
-	draw::draw_string(x_offset + 29, y_offset - 3, menu_text, font::menu_font, namedisplay.c_str());
-
-	draw::draw_rect_gradient(x_offset + 29, y_offset + 14, SliderSize, 10, menu_background, menu_background_bottomgrad, false);
-
-	if (*item)
-	{
-		if (*item == max) //to fix dumb math stufffff bec pixel size
-			if (!vars::cheat::custom_ui_colour)
-			{
-				draw::draw_rect_gradient(x_offset + 29, y_offset + 14, SliderSize, 10, menu_accent, menu_accent_bottomgrad, false);
-			}
-			else
-			{
-				draw::draw_filled_rect(x_offset + 29, y_offset + 14, SliderSize, 10, custom_ui_colour);
-			}
-		else
-			if (!vars::cheat::custom_ui_colour)
-			{
-				draw::draw_rect_gradient(x_offset + 29, y_offset + 14, (*item / _pixel_value), 10, menu_accent, menu_accent_bottomgrad, false);
-			}
-			else
-			{
-				draw::draw_filled_rect(x_offset + 29, y_offset + 14, (*item / _pixel_value), 10, custom_ui_colour);
-			}
-
-	}
-
-	draw::draw_outlined_rect(x_offset + 29, y_offset + 14, SliderSize, 10, menu_div2);
-
-	draw::draw_string(x_offset + 18, y_offset + 11, menu_text, font::menu_font, "<");
-	draw::draw_string(x_offset + 20 + SliderSize + 12, y_offset + 11, menu_text, font::menu_font, ">");
-
-	if (c_menu::get().menu_opened) {
-		if (mouse_in_params(x_offset + 29, y_offset + 14, SliderSize + 1, 10)) {
-			int _hovering_value = abs(mouse_pos().x - (x_offset + 29)) * _pixel_value;
-			draw::draw_filled_rect(x_offset + 29, y_offset + 14, (_hovering_value / _pixel_value), 10, menu_div2);
-			draw::draw_string(mouse_pos().x + 12, mouse_pos().y - 5, menu_text, font::menu_font,
-				(suffix.size() > 0) ? (std::to_string(_hovering_value) + " " + suffix).c_str() : std::to_string(_hovering_value).c_str());
-		}
-	}
-
-	y_offset += 30;
-}
-
 void c_menu::draw_spectatorlist()
 {
 	if (!vars::visuals::spectators)
@@ -1668,7 +1564,7 @@ void c_menu::draw(unsigned int panel)
 					case 1: { //le fakes
 						combobox(3, xorstr("type"), yaw_types, &vars::hvh::anti_aim_fake_type);
 						slider(30, xorstr("spin speed"), &vars::hvh::anti_aim_fake_spinspeed, xorstr(""), 10);
-						slider(-180, 180, xorstr("offset"), &vars::hvh::anti_aim_fake_offset, xorstr("deg"), 5);
+						slider(180, xorstr("offset"), &vars::hvh::anti_aim_fake_offset, xorstr("deg"), 5);
 						slider(180, xorstr("add jitter"), &vars::hvh::anti_aim_fake_jitter, xorstr("deg"), 10);
 						slider(180, xorstr("add spin"), &vars::hvh::anti_aim_fake_spin_range, xorstr("deg"), 10);
 						slider(30, xorstr("add spin speed"), &vars::hvh::anti_aim_fake_add_spin_speed, xorstr(""), 10);
