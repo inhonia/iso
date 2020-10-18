@@ -135,10 +135,10 @@
     <ClInclude Include="weapon_defs.h" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="helpers\vmprotect_sdk\VMProtectSDK32.lib" />
+    <Library Include="$(ProjectDir)\helpers\vmprotect_sdk\VMProtectSDK32.lib" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="helpers\vmprotect_sdk\VMProtectSDK32.dll" />
+    <None Include="$(ProjectDir)\helpers\vmprotect_sdk\VMProtectSDK32.dll" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -444,7 +444,7 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>call S:\Programming\vmprotect\VMProtect_Con.exe ..\bin\release\isoprop_packed.vmp</Command>
+      <Command>call $(VMP_DIR)\VMProtect_Con.exe ..\bin\release\isoprop_packed.vmp</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
