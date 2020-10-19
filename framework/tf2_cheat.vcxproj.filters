@@ -368,14 +368,4 @@
       <UniqueIdentifier>{6a9a8fa6-575b-4bd2-881c-29bffd5c7d3b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
-  <ItemGroup>
-    <Library Include="helpers\vmprotect_sdk\VMProtectSDK32.lib">
-      <Filter>helpers\vmprotect_sdk</Filter>
-    </Library>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="helpers\vmprotect_sdk\VMProtectSDK32.dll">
-      <Filter>helpers\vmprotect_sdk</Filter>
-    </None>
-  </ItemGroup>
 </Project>

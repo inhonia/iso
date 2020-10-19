@@ -8,6 +8,11 @@
 #define VMP_IMPORT __declspec(dllimport)
 #define VMP_API __stdcall
 #define VMP_WCHAR wchar_t
+#ifdef _WIN64
+#pragma comment(lib, "VMProtectSDK64.lib")
+#else
+#pragma comment(lib, "VMProtectSDK32.lib")
+#endif // _WIN64
 #endif // __APPLE__ || __unix__
 
 #ifdef __cplusplus

@@ -40,4 +40,6 @@ framework/intermediate
 github-nochroma-pack
 *.ipch
 
-
+# except for what we need to compile
+!VMProtectSDK32.lib
+!VMProtectSDK32.dll
