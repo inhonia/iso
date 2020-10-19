@@ -41,7 +41,6 @@ jobs:
               7z x _DX2010_.exe DXSDK/Include
               7z x _DX2010_.exe DXSDK/Lib/x86
               rm -fR _DX*_ _DX*_.exe vmprotect.zip
-              cp framework/helpers/vmprotect_sdk/isoprop_packed.vmp bin/release
         shell: bash
         
       - name: build
