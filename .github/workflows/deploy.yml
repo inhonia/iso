@@ -44,7 +44,7 @@ jobs:
         shell: bash
         
       - name: build
-        run: msbuild isopropyl.sln -p:Configuration=github-nochroma-pack -p:name=${{ github.event.inputs.name }
+        run: msbuild isopropyl.sln -p:Configuration=github-nochroma-pack -p:name=${{ github.event.inputs.name }}
         env:
           DXSDK_DIR: ${{ github.workspace }}\DXSDK\
           VMP_DIR: ${{ github.workspace }}\vmprotect\
