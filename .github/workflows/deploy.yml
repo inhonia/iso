@@ -26,7 +26,7 @@ jobs:
             DXSDK
             vmprotect
             bin/release
-          key: ${{ hashFiles('DXSDK') }}
+          key: deps-cache
 
       - name:  create cache
         if:    steps.deps-cache.outputs.cache-hit != 'true'
