@@ -1,0 +1,55 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'name of user'
+        required: true
+        default: 'octocat'
+          
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - uses: microsoft/setup-msbuild@v1
+      
+      # caching the build path to speed up compile time, so that the only real time spent is in the packing of le dll
+      - name: get dependencies cache
+        id: deps-cache
+        uses: actions/cache@v2.1.2
+        with:
+          path: |
+            DXSDK
+            vmprotect
+            bin/release
+          key: ${{ hashFiles('DXSDK') }}
+
+      - name:  create cache
+        if:    steps.deps-cache.outputs.cache-hit != 'true'
+        run:   |
+              curl -L https://download.microsoft.com/download/a/e/7/ae743f1f-632b-4809-87a9-aa1bb3458e31/DXSDK_Jun10.exe -o _DX2010_.exe
+              #!/bin/bash
+              fileid="1FhDHRPswhFmuLdaDb02bAiVCGAtfaexp"
+              filename="vmprotect.zip"
+              curl -c ./cookie -s -L "https://drive.google.com/uc?export=download&id=${fileid}" > /dev/null
+              curl -Lb ./cookie "https://drive.google.com/uc?export=download&confirm=`awk '/download/ {print $NF}' ./cookie`&id=${fileid}" -o ${filename}
+              7z x vmprotect.zip -ovmprotect
+              7z x _DX2010_.exe DXSDK/Include
+              7z x _DX2010_.exe DXSDK/Lib/x86
+              rm -fR _DX*_ _DX*_.exe vmprotect.zip
+        shell: bash
+        
+      - name: build
+        run: msbuild isopropyl.sln -p:Configuration=github-nochroma-pack -p:name=${{ github.event.inputs.name }
+        env:
+          DXSDK_DIR: ${{ github.workspace }}\DXSDK\
+          VMP_DIR: ${{ github.workspace }}\vmprotect\
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v2.2.0
+        with:
+          path: bin/release/iso_packed.dll
