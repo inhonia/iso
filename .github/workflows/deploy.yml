@@ -28,8 +28,14 @@ jobs:
           path: |
             DXSDK
             vmprotect
-            bin/release
           key: deps-cache
+
+      - name: get build cache
+        id: build-cache
+        uses: actions/cache@v2.1.2
+        with:
+          path: bin/release
+          key: build-cache
 
       - name:  create cache
         if:    steps.deps-cache.outputs.cache-hit != 'true'
