@@ -79,10 +79,6 @@
 
 #pragma comment(lib, "Winmm.lib")
 
-#ifndef _AUTOMATED
-#define USER xorstr("alexis hyland")
-#endif
-
 #define COLORCODE(r,g,b,a)((DWORD)((((r)&0xff)<<24)|(((g)&0xff)<<16)|(((b)&0xff)<<8)|((a)&0xff)))
 #define vector_ma(v, s, b, o)    ((o)[0] = (v)[0] + (b)[0] * (s), (o)[1] = (v)[1] + (b)[1] * (s), (o)[2] = (v)[2] + (b)[2] * (s))
 #define TIME_TO_TICKS(dt) ((int)(0.5f + (float)(dt) / interfaces::globals->interval_per_tick))
