@@ -14,6 +14,12 @@ int player_count = 0;
 #define menu_div1 colour_t(136, 93, 113, menu_alpha_main)
 #define menu_div2 colour_t(59, 56, 63, menu_alpha_main)
 
+// This is only ever used here, so I'm moving it from 
+// main.h to here to speed up compile time.
+#ifndef _AUTOMATED
+#define USER xorstr("alexis hyland")
+#endif
+
 
 int get_fakelag_ticks() {
 	unsigned int tick_amount = interfaces::convar->find_variable(xorstr("sv_maxusrcmdprocessticks"))->get_float();

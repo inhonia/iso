@@ -32,11 +32,17 @@
 *.app
 
 .vs
-bin
+bin/*
+!bin/release
+bin/release/*
+!bin/release/isoprop_packed.vmp 
 framework/Release
 framework/tggp - auto pack
 framework/tggp - no chroma auto pack
 framework/intermediate
+github-nochroma-pack
 *.ipch
 
-
+# except for what we need to compile
+!VMProtectSDK32.lib
+!VMProtectSDK32.dll

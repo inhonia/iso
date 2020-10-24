@@ -88,8 +88,6 @@
 #define assert( _exp ) ((void)0)
 #define float_compare(x, y) (fabsf(x - y) <= FLT_EPSILON * fmaxf(1.0f, fmaxf(fabsf(x), fabsf(y)))
 
-#define USER xorstr("alexis hyland")
-
 template<class T, class U>
 T clamp(T in, U low, U high) {
 	if (in <= low) return low;

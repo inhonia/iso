@@ -369,12 +369,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\..\..\-\VM Portable\Lib\Windows\VMProtectSDK32.lib">
+    <Library Include="helpers\vmprotect_sdk\VMProtectSDK32.lib">
       <Filter>helpers\vmprotect_sdk</Filter>
     </Library>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\-\VM Portable\Lib\Windows\VMProtectSDK32.dll">
+    <None Include="helpers\vmprotect_sdk\VMProtectSDK32.dll">
       <Filter>helpers\vmprotect_sdk</Filter>
     </None>
   </ItemGroup>
