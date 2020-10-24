@@ -89,6 +89,11 @@ namespace utilities {
 
 		return sqrtf(powf(delta.x, 2.0f) + powf(delta.y, 2.0f));
 	}
+
+	float utilities::fl_clamp(float in, float low, float high) {
+		return clamp(in, low, high);
+	}
+
 	vec3_t utilities::vectorangles(vec3_t start, vec3_t end) {
 		vec3_t delta = end - start;
 
@@ -244,8 +249,8 @@ namespace utilities {
 		vec3_t center = (min + max) * 0.5f;
 		vec3_t vhitbox;
 		
-		if (!center.validate())
-			return vec3_t();
+		//if (!center.validate())
+		//	return vec3_t();
 
 		utilities::vector_transform(center, matrix[box->bone], vhitbox);
 

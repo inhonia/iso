@@ -1,4 +1,10 @@
 #pragma once
+template<class T, class U>
+T clampit(T in, U low, U high) {
+	if (in <= low) return low;
+	if (in >= high) return high;
+	return in;
+}
 
 class ang_t {
 public:
@@ -204,11 +210,11 @@ public:
 	//	return vec;
 	//}
 
-	//__forceinline void clamp() {
-	//	math::clamp(x, -89.f, 89.f);
-	//	math::clamp(y, -180.f, 180.f);
-	//	math::clamp(z, -90.f, 90.f);
-	//}
+	__forceinline void clamp() {
+		clampit(x, -89.f, 89.f);
+		clampit(y, -180.f, 180.f);
+		clampit(z, -90.f, 90.f);
+	}
 
 	//__forceinline void SanitizeAngle() {
 	//	math::NormalizeAngle(y);

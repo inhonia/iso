@@ -113,6 +113,7 @@ namespace utilities {
 	vec3_t vectorangles2(vec3_t start, vec3_t end);
 	void vectorangles3(const vec3_t& forward, ang_t& angles, vec3_t* up = nullptr);
 	float get_angle_from_point(vec3_t point);
+	float fl_clamp(float in, float low, float high);
 
 	void make_vector(vec3_t angle, vec3_t& vector);
 	vec3_t calc_angle(vec3_t src, vec3_t dst);
