@@ -163,10 +163,7 @@ namespace visuals {
 		static float framerate = 0;
 
 		if ((interfaces::globals->tickcount - last_time) > 80)
-		{
-			secretmark_x = rand() % (scr_w - 200); secretmark_y = rand() % (scr_h - 200);
 			last_time = interfaces::globals->tickcount;
-		}
 
 		framerate = 0.9 * framerate + (1.0 - 0.9) * interfaces::globals->absoluteframetime;
 		fps = int(1.f / framerate);
@@ -183,9 +180,9 @@ namespace visuals {
 		std::string latency = std::to_string((int)average_latency);
 		
 		if (interfaces::engineclient->is_in_game())
-			ss << "Isopropyl | alpha v1.0" << " | fps: " << fps << " | latency: " << latency.c_str() << "ms";
+			ss << "Isopropyl | alpha v1.1" << " | fps: " << fps << " | latency: " << latency.c_str() << "ms";
 		else 
-			ss << "Isopropyl | alpha v1.0";
+			ss << "Isopropyl | alpha v1.1";
 
 		int x, y, w, h;
 		size_t origsize = strlen(ss.str().c_str()) + 1;
@@ -201,13 +198,6 @@ namespace visuals {
 		draw::draw_filled_rect(scr_w - (textsize + 20) - 5, 6, textsize + 20, 20, colour_t(23, 20, 27, 144));
 		draw::draw_outlined_rect(scr_w - (textsize + 20) - 5, 6, textsize + 20, 1, custom_ui_colour);
 		draw::draw_string(scr_w - (textsize + 10) - 5, 9, colour_t(186, 183, 194), font::menu_font, ss.str().c_str());
-
-		std::string secretmark = ss.str().c_str();
-
-		std::transform(secretmark.begin(), secretmark.end(), secretmark.begin(), toupper);
-
-		draw::draw_string_centered(secretmark_x, secretmark_y, colour_t(255, 255, 255, 5), font::smallfont, "USER: %s", USER);
-		draw::draw_string_centered(secretmark_x, secretmark_y + 6, colour_t(255, 255, 255, 5), font::smallfont, secretmark.c_str());
 	}
 
 	void visuals::render_hud() {
@@ -1111,7 +1101,7 @@ namespace visuals {
 				}
 
 				if (vars::visuals::building_name) {
-					draw::draw_string_centered(x + (w / 2), y - 13, esp_colour, font::calibri, xorstr("dispencer"));//
+					draw::draw_string_centered(x + (w / 2), y - 13, esp_colour, font::calibri, xorstr("dispenser"));
 				}
 
 				if (vars::visuals::building_builder) {

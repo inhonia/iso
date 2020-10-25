@@ -22,6 +22,7 @@ namespace interfaces {
 	extern ienginetrace*		enginetrace;
 	extern ivdebugoverlay*		debugoverlay;
 	extern ienginevgui*			enginevgui;
+	extern int32_t*				random_seed;
 	extern ivefx*				efx;
 
 	extern global_vars_base*	globals;

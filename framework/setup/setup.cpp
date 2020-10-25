@@ -146,8 +146,8 @@ namespace hooks {
 			font::tab_font = interfaces::surface->create_font();
 			interfaces::surface->set_font_glyph_set(font::tab_font, xorstr("Impact"), 36, 500, 0, 0, FONTFLAG_ANTIALIAS);
 
-			font::calibri = interfaces::surface->create_font();
-			interfaces::surface->set_font_glyph_set(font::calibri, xorstr("Franklin Gothic"), 12, 500, 0, 0, FONTFLAG_DROPSHADOW);
+			font::calibri = interfaces::surface->create_font(); //name font!
+			interfaces::surface->set_font_glyph_set(font::calibri, xorstr("Franklin Gothic"), 12, 500, 0, 0, FONTFLAG_DROPSHADOW | FONTFLAG_ANTIALIAS);
 
 			font::hud = interfaces::surface->create_font();
 			interfaces::surface->set_font_glyph_set(font::hud, xorstr("Roboto"), 129, 800, 0, 0, FONTFLAG_ANTIALIAS);
@@ -317,36 +317,11 @@ namespace hooks {
 
 				if (vars::visuals::thirdperson)
 				{
-					//ray_t ray; trace_t trace;
-					//trace_filter filt; filt.skip = ctx::local_player;
 
-					//vec3_t offset, origin, forward;
-					//interfaces::engineclient->get_view_angles(offset);
-
-					//utilities::angle_vectors(offset, &forward);
-
-					//offset.z = vars::visuals::thirdperson_dist;
-
-					//origin = ctx::local_player->get_eye_position();
-
-					//ray.init(origin, origin - (forward * offset.z));
-					//interfaces::enginetrace->trace_ray(ray, MASK_NPCWORLDSTATIC, &filt, &trace);
-
-					//clamp(trace.fraction, 0.f, 1.f);
-					//offset.z *= trace.fraction;
-
-					//setup->origin = offset;
 				}
 			}
 		}
 	}
-	//long __fastcall hooks::endscene(IDirect3DDevice9* device) {
-	//	return hook::endscene_hook->get_original_function<decltype(&hooks::endscene)>(42)(device);
-	//}
-
-	//long __fastcall hooks::reset(IDirect3DDevice9* device, D3DPRESENT_PARAMETERS* present_params) {
-	//	return hook::reset_hook->get_original_function<decltype(&hooks::reset)>(16)(device, present_params);
-	//}
 
 	void __fastcall hooks::scene_end(void* ecx, void* edx) {
 		static auto original_scene_end = hook::render_hook->get_original_function<decltype(&hooks::scene_end)>(9);
@@ -761,6 +736,7 @@ namespace setup {
 		interfaces::enginetrace	 = static_cast<ienginetrace*>(engine(xorstr("EngineTraceClient003"), nullptr));
 		interfaces::debugoverlay = static_cast<ivdebugoverlay*>(engine(xorstr("VDebugOverlay003"), nullptr));
 		interfaces::enginevgui	 = static_cast<ienginevgui*>(engine(xorstr("VEngineVGui001"), nullptr));
+		interfaces::random_seed	 = *reinterpret_cast<int32_t**>(utilities::find_signature(xorstr("client.dll"), "C7 05 ? ? ? ? ? ? ? ? 5D C3 8B 40 34") + 0x2);
 		interfaces::efx			 = static_cast<ivefx*>(engine(xorstr("VEngineEffects001"), nullptr));
 
 		interfaces::globals		= *reinterpret_cast<global_vars_base**>(utilities::find_signature(xorstr("engine.dll"), xorstr("A1 ? ? ? ? 8B 11 68")) + 8);

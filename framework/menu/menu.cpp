@@ -1220,7 +1220,13 @@ void c_menu::draw(unsigned int panel)
 	else if (_secret_pressed && !GetAsyncKeyState(VK_SCROLL))
 	{
 		_secret_pressed = false;
-		interfaces::convar->console_print_colour(vars::cheat::custom_ui_colour ? custom_ui_colour : menu_accent, xorstr("thank you to all the homies that have helped me make this project possible:\nfox: being fox \nv952: spoonfeeding me a bunch of shit \nall the gamers in my telegram: being around\nthanks folks :) (p.s. this is the secret!)\nALPHA TELEGRAM v1.0 BUILD\n"));
+		interfaces::convar->console_print_colour(vars::cheat::custom_ui_colour ? custom_ui_colour : menu_accent, xorstr( //uh oh stinky poop ahead!
+"thank you to all the homies that have helped me make this project possible:\n\
+**catberg**: being an amazing help with the telegram bot \n\
+fox: being fox \n\
+v952: spoonfeeding me a bunch of shit \n\
+all the gamers in my telegram: being around\nthanks folks ;)\n\
+ALPHA TELEGRAM v1.1 BUILD\n"));
 	}
 
 	//just gonna do config shit here cuz why not i guess
@@ -1288,7 +1294,6 @@ void c_menu::draw(unsigned int panel)
 			_pos.y = _mouse_pos.y - _drag_y;
 		}
 
-		//if (mouse_in_params(_pos.x - 85, _pos.y, _width + 85, _height) && !(mouse_in_params(_pos.x - 85, _pos.y + 20, _width - 10, _height - 10)))
 		if (mouse_in_params(_pos.x - 85, _pos.y, _width + 85, _pos.y + 20) && !(mouse_in_params(_pos.x - 85, _pos.y + 20, _width + 85, _height)))
 		{
 			_dragging = true;
@@ -1308,7 +1313,7 @@ void c_menu::draw(unsigned int panel)
 		draw::draw_filled_rect(_pos.x - 85, _pos.y, _width + 85, _height, menu_background);
 	}
 	draw::draw_filled_rect(_pos.x, _pos.y + 20, _width, _height - 20, menu_background);
-	//interfaces::surface->draw_gradient(_pos.x, _pos.y + 20, _width, _height - 20, colour_t(16, 16, 16, menu_alpha_main), menu_background, GRADIENT_HORIZONTAL);
+
 	draw::draw_filled_rect(_pos.x - 85, _pos.y + 20, 85, _height - 20, colour_t(23, 20, 27, menu_alpha_main / 1.5));
 
 	draw::draw_filled_rect(_pos.x - 85, _pos.y + 20, _width + 85, 1, vars::cheat::custom_ui_colour ? custom_ui_colour : menu_accent);
@@ -1318,8 +1323,8 @@ void c_menu::draw(unsigned int panel)
 	draw::draw_string(_pos.x - 85 + 10, _pos.y + 2, colour_t(180, 180, 180, menu_alpha_text), font::menu_font, xorstr("Isopropyl | registered to: %s"), USER);
 	int in_sizew = 70;
 	static int tab_selected = 0;
-	static const int tab_amount = 6;
-	static std::string tab_names[tab_amount] = { xorstr("aimbot"), xorstr("visuals"), xorstr("miscellaneous"), xorstr("anti-aim"), xorstr("chroma"), xorstr("config") };
+	static const int tab_amount = 5;
+	static std::string tab_names[tab_amount] = { xorstr("aimbot"), xorstr("visuals"), xorstr("miscellaneous"), xorstr("anti-aim"), xorstr("config") };
 
 	for (int i = 0; i < tab_amount; i++)
 	{
@@ -1378,7 +1383,6 @@ void c_menu::draw(unsigned int panel)
 						}
 						slider(100, xorstr("point scale"), &vars::aimbot::pointscale, xorstr(""), 10);
 						combobox(5, xorstr("bone"), main_hitbox, &vars::aimbot::main_hitbox);
-						//multicombo(jeff, xorstr("hitboxes"), multidummy); :rolling_eyes:
 						combobox(11, xorstr("key"), keys, &vars::aimbot::aimbot_key);
 						checkbox(xorstr("smoothing"), &vars::aimbot::smoothing);
 						if (!vars::aimbot::smoothing) {
@@ -1397,7 +1401,6 @@ void c_menu::draw(unsigned int panel)
 						else {
 							slider(40, xorstr("vertical smoothing"), &vars::aimbot::smoothingx, "", 1);
 							slider(40, xorstr("horizontal smoothing"), &vars::aimbot::smoothingy, "", 1);
-							//checkbox(xorstr("aim assistance"), &vars::aimbot::assist);
 							checkbox(xorstr("autoshoot"), &vars::aimbot::autoshoot);
 							checkbox(xorstr("autoscope"), &vars::aimbot::autoscope);
 							checkbox_colour(xorstr("draw fov"), &vars::aimbot::drawfov, &vars::colour::aimbot_fov);
@@ -1405,8 +1408,6 @@ void c_menu::draw(unsigned int panel)
 							checkbox(xorstr("backtracking"), &vars::position_adjustment::enabled);
 							checkbox(xorstr("auto minigun rev"), &vars::aimbot::heavy_autorev);
 							label(xorstr("legitbot is on!"));
-							//label(xorstr("aimbot fov is limited to 30."));
-							//label(xorstr("to disable, disable smoothing."));
 						}
 						groupbox(16, 424, 180, 40, xorstr("page")); {
 							button(xorstr("next page"), &aim_tab_page, false);
@@ -1467,7 +1468,6 @@ void c_menu::draw(unsigned int panel)
 							checkbox(xorstr("steamid"), &vars::visuals::enemy_steamid);
 							combobox(4, xorstr("backtrack visualization"), backtracks, &vars::visuals::enemy_backtrack_visulization);
 							checkbox_colour_dual(xorstr("hitboxes"), &vars::visuals::enemy_hitboxes, &vars::colour::enemy_hitbox_vis, &vars::colour::enemy_hitbox_inv);
-							//checkbox_colour_dual(xorstr("glow"), &vars::visuals::enemy_glow, &vars::colour::enemy_glow_vis, &vars::colour::enemy_glow_inv);
 
 						} break;
 						case 1: { //team vis
@@ -1479,7 +1479,6 @@ void c_menu::draw(unsigned int panel)
 							checkbox(xorstr("weapon"), &vars::visuals::team_weapon);
 							checkbox(xorstr("steamid"), &vars::visuals::team_steamid);
 							checkbox_colour_dual(xorstr("hitboxes"), &vars::visuals::team_hitboxes, &vars::colour::team_hitbox_vis, &vars::colour::team_hitbox_inv);
-							//checkbox_colour_dual(xorstr("glow"), &vars::visuals::team_glow, &vars::colour::team_glow_vis, &vars::colour::team_glow_inv);
 						} break;
 						case 2: { //building vis
 							checkbox(xorstr("enemy only"), &vars::visuals::building_enemyonly);
@@ -1581,14 +1580,14 @@ void c_menu::draw(unsigned int panel)
 			}
 		} break;
 
-		case chroma_tab: {
-			groupbox(16, 36, 180, 80, xorstr("keyboard chroma")); {
-				checkbox(xorstr("enabled"), &vars::chroma::enabled);
-				checkbox(xorstr("in game effects"), &vars::chroma::in_game);
-				checkbox(xorstr("up arrow crosshair"), &vars::chroma::up_arrow);
-				checkbox(xorstr("display killstreak"), &vars::chroma::killstreak);
-			}
-		} break;
+		//case chroma_tab: {
+		//	groupbox(16, 36, 180, 80, xorstr("keyboard chroma")); {
+		//		checkbox(xorstr("enabled"), &vars::chroma::enabled);
+		//		checkbox(xorstr("in game effects"), &vars::chroma::in_game);
+		//		checkbox(xorstr("up arrow crosshair"), &vars::chroma::up_arrow);
+		//		checkbox(xorstr("display killstreak"), &vars::chroma::killstreak);
+		//	}
+		//} break;
 
 		case config_tab: {
 			groupbox(16, 36, 180, 51, xorstr("general")); {

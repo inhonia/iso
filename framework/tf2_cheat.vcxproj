@@ -45,6 +45,7 @@
   <ItemGroup>
     <ClCompile Include="critbucket.cpp" />
     <ClCompile Include="customeffects.cpp" />
+    <ClCompile Include="md5.cpp" />
     <ClCompile Include="notify.cpp" />
     <ClCompile Include="prediction.cpp" />
     <ClCompile Include="events.cpp" />
@@ -79,6 +80,7 @@
     <ClInclude Include="igamemovement.h" />
     <ClInclude Include="iglowobject.h" />
     <ClInclude Include="iprediction.h" />
+    <ClInclude Include="md5.h" />
     <ClInclude Include="notify.h" />
     <ClInclude Include="prediction.h" />
     <ClInclude Include="events.h" />

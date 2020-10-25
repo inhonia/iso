@@ -55,6 +55,7 @@ typedef game_trace trace_t;
 // misc defines
 #include "../weapon_defs.h"
 #include "../bsp_flags.h"
+#include "../md5.h"
 
 #pragma endregion
 

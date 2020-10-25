@@ -80,6 +80,9 @@
     <ClCompile Include="resolver.cpp">
       <Filter>modules\resolver</Filter>
     </ClCompile>
+    <ClCompile Include="md5.cpp">
+      <Filter>sdk\md5</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h" />
@@ -262,6 +265,9 @@
     </ClInclude>
     <ClInclude Include="utlvector.h">
       <Filter>helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="md5.h">
+      <Filter>sdk\md5</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

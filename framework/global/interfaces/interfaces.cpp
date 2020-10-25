@@ -15,6 +15,7 @@ namespace interfaces {
 	ienginetrace*			interfaces::enginetrace;
 	ivdebugoverlay*			interfaces::debugoverlay;
 	ienginevgui*			interfaces::enginevgui;
+	int32_t*				interfaces::random_seed;
 	ivefx*					interfaces::efx;
 
 	global_vars_base*		interfaces::globals;
