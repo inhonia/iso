@@ -163,10 +163,7 @@ namespace visuals {
 		static float framerate = 0;
 
 		if ((interfaces::globals->tickcount - last_time) > 80)
-		{
-			secretmark_x = rand() % (scr_w - 200); secretmark_y = rand() % (scr_h - 200);
 			last_time = interfaces::globals->tickcount;
-		}
 
 		framerate = 0.9 * framerate + (1.0 - 0.9) * interfaces::globals->absoluteframetime;
 		fps = int(1.f / framerate);
@@ -201,13 +198,6 @@ namespace visuals {
 		draw::draw_filled_rect(scr_w - (textsize + 20) - 5, 6, textsize + 20, 20, colour_t(23, 20, 27, 144));
 		draw::draw_outlined_rect(scr_w - (textsize + 20) - 5, 6, textsize + 20, 1, custom_ui_colour);
 		draw::draw_string(scr_w - (textsize + 10) - 5, 9, colour_t(186, 183, 194), font::menu_font, ss.str().c_str());
-
-		std::string secretmark = ss.str().c_str();
-
-		std::transform(secretmark.begin(), secretmark.end(), secretmark.begin(), toupper);
-
-		draw::draw_string_centered(secretmark_x, secretmark_y, colour_t(255, 255, 255, 5), font::smallfont, "USER: %s", USER);
-		draw::draw_string_centered(secretmark_x, secretmark_y + 6, colour_t(255, 255, 255, 5), font::smallfont, secretmark.c_str());
 	}
 
 	void visuals::render_hud() {
