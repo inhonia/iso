@@ -57,4 +57,12 @@ namespace ctx {
 	vec3_t			ctx::camera_angs;
 
 	std::string		ctx::map_name;
+
+	vec3_t			ctx::smooth_start;
+	float			ctx::smooth_start_time = 0.0f;
+	int				ctx::old_hit_scan = -1;
+	bool			ctx::smooth_finished = false;
+	c_base_player*	ctx::old_aimbot_target = nullptr;
+	float			ctx::smooth_percentage_done;
+	bool			ctx::has_flicked;
 }

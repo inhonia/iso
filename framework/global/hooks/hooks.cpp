@@ -7,4 +7,5 @@ namespace hook {
 	std::unique_ptr<vmt_manager> hook::render_hook;
 	std::unique_ptr<vmt_manager> hook::endscene_hook;
 	std::unique_ptr<vmt_manager> hook::reset_hook;
+	std::unique_ptr<vmt_manager> hook::prediction_hook;
 }

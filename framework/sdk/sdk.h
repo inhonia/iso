@@ -40,6 +40,7 @@ typedef game_trace trace_t;
 #include "engine/ieventmanager.h"
 #include "../iglowobject.h"
 #include "../igamemovement.h"
+#include "../imovehelper.h"
 #include "../iprediction.h"
 
 // public
@@ -55,6 +56,7 @@ typedef game_trace trace_t;
 // misc defines
 #include "../weapon_defs.h"
 #include "../bsp_flags.h"
+#include "../md5.h"
 
 #pragma endregion
 

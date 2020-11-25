@@ -60,12 +60,12 @@
 
 #include "TGFCfg.h"
 
-#include "modules/chroma/inc/RzChromaSDKDefines.h"
-#include "modules/chroma/inc/RzChromaSDKTypes.h"
-#include "modules/chroma/inc/RzErrors.h"
-#include "modules/chroma/inc/ChromaSDKImpl.h"
-#include "modules/chroma/inc/FrameController.h"
-#include "customeffects.h"
+//#include "modules/chroma/inc/RzChromaSDKDefines.h"
+//#include "modules/chroma/inc/RzChromaSDKTypes.h"
+//#include "modules/chroma/inc/RzErrors.h"
+//#include "modules/chroma/inc/ChromaSDKImpl.h"
+//#include "modules/chroma/inc/FrameController.h"
+//#include "customeffects.h"
 
 #include "critbucket.h"
 
@@ -88,6 +88,13 @@
 #define assert( _exp ) ((void)0)
 #define float_compare(x, y) (fabsf(x - y) <= FLT_EPSILON * fmaxf(1.0f, fmaxf(fabsf(x), fabsf(y)))
 
+enum pred_quality_t : int //likely won't get much use other than low / high.
+{
+	QUALITY_LOW = 64,
+	QUALITY_MEDIUM = 150,
+	QUALITY_HIGH = 300
+};
+
 template<class T, class U>
 T clamp(T in, U low, U high) {
 	if (in <= low) return low;
@@ -107,6 +114,7 @@ namespace utilities {
 	vec3_t get_multipoint_position(c_base_player* entity, int hitbox, int scale);
 	bool has_condition(c_base_player* entity, int condition);
 	void angle_vectors(const vec3_t &angles, vec3_t* forward);
+	void angle_vectors(const vec3_t& angles, vec3_t* forward, vec3_t* right, vec3_t* up);
 	vec3_t vectorangles(vec3_t start, vec3_t end);
 	vec3_t vectorangles2(vec3_t start, vec3_t end);
 	void vectorangles3(const vec3_t& forward, ang_t& angles, vec3_t* up = nullptr);
@@ -161,6 +169,82 @@ namespace utilities {
 		cVal = clamp(cVal, 0.0f, 1.0f);
 
 		return C + (D - C) * cVal;
+	}
+
+	inline float ease_out_quad(float x)
+	{
+		return 1 - (1 - x) * (1 - x);
+	}
+
+	inline float ease_in_back(float x)
+	{
+		float c1 = 1.70158;
+		float c3 = c1 + 1;
+
+		return c3 * x * x * x - c1 * x * x;
+	}
+
+	inline float ease_in_out_sine(float x)
+	{
+		return -(cos(PI * x) - 1) / 2;
+	}
+
+	inline float ease_out_elastic(float x)
+	{
+		float c4 = (2 * PI) / 3;
+
+		return x == 0
+			? 0
+			: x == 1
+			? 1
+			: pow(2, -10 * x) * sin((x * 10 - 0.75) * c4) + 1;
+	}
+
+	inline float ease_out_bounce(float x)
+	{
+		float n1 = 7.5625;
+		float d1 = 2.75;
+
+		if (x < 1 / d1) {
+			return n1 * x * x;
+		}
+		else if (x < 2 / d1) {
+			return n1 * (x -= 1.5 / d1) * x + 0.75;
+		}
+		else if (x < 2.5 / d1) {
+			return n1 * (x -= 2.25 / d1) * x + 0.9375;
+		}
+		else {
+			return n1 * (x -= 2.625 / d1) * x + 0.984375;
+		}
+	}
+
+	inline vec3_t linear_interpolation(vec3_t a, vec3_t b, float t)
+	{
+		return a * t + b * (1.f - t);
+	}
+
+	inline void trace_hull(const vec3_t& vecStart, const vec3_t& vecEnd, const vec3_t& vecHullMin, const vec3_t& vecHullMax,
+		unsigned int nMask, trace_filter* pFilter, trace_t* pTrace)
+	{
+		ray_t ray;
+		ray.init(vecStart, vecEnd, vecHullMin, vecHullMax);
+		interfaces::enginetrace->trace_ray(ray, nMask, pFilter, pTrace);
+	}
+
+	inline void sin_cos(float radians, float* sine, float* cosine) //woah dude inline asm??!!
+	{
+		_asm
+		{
+			fld		DWORD PTR[radians]
+			fsincos
+
+			mov edx, DWORD PTR[cosine]
+			mov eax, DWORD PTR[sine]
+
+			fstp DWORD PTR[edx]
+			fstp DWORD PTR[eax]
+		}
 	}
 
 	inline bool is_variable_key_pressed(int var) {

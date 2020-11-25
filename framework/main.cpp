@@ -300,6 +300,32 @@ namespace utilities {
 		forward->z = -sp;
 	}
 
+	void utilities::angle_vectors(const vec3_t& angles, vec3_t* forward, vec3_t* right, vec3_t* up)
+	{
+		float sr, sp, sy, cr, cp, cy;
+		sin_cos(DEG2RAD(angles.x), &sp, &cp);
+		sin_cos(DEG2RAD(angles.y), &sy, &cy);
+		sin_cos(DEG2RAD(angles.z), &sr, &cr);
+
+		if (forward) {
+			forward->x = cp * cy;
+			forward->y = cp * sy;
+			forward->z = -sp;
+		}
+
+		if (right) {
+			right->x = (-1 * sr * sp * cy + -1 * cr * -sy);
+			right->y = (-1 * sr * sp * sy + -1 * cr * cy);
+			right->z = -1 * sr * cp;
+		}
+
+		if (up) {
+			up->x = (cr * sp * cy + -sr * -sy);
+			up->y = (cr * sp * sy + -sr * cy);
+			up->z = cr * cp;
+		}
+	}
+
 	void utilities::make_vector(vec3_t angle, vec3_t& vector) {
 		float pitch	= float(angle[0] * PI / 180), yaw = float(angle[1] * PI / 180), tmp = float(cos(pitch));
 		vec3_t final_vec = vec3_t(float(-tmp * -cos(yaw)), float(sin(yaw)*tmp), float(-sin(pitch)));

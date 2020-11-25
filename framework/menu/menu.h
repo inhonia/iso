@@ -21,11 +21,11 @@ struct multidropdownitem_t {
 
 enum tabs {
 	aimbot_tab = 0,
-	visual_tab = 1,
-	misc_tab = 2,
-	anti_aim_tab = 3,
-	chroma_tab = 4,
-	config_tab = 5
+	visual_tab,
+	misc_tab,
+	anti_aim_tab,
+	//chroma_tab,
+	config_tab
 };
 
 class c_menu : public singleton<c_menu> {

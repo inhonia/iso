@@ -11,20 +11,22 @@ namespace hooks {
 		ctx::send_packet = (bool*)(***(uintptr_t***)_bp - 1);
 
 		if (ctx::local_player == nullptr || ctx::command == nullptr || !ctx::command->command_number) {
-			return false;
+			return original_create_move(ecx, edx, input_sample_time, command);
 		}
 		position_adjustment::do_position_adjustment();
 		miscellanous::do_miscellanous();
 		//miscellanous::do_anim_bug();
 		prediction::run_prediction(ctx::command, ctx::local_player);
-		triggerbot::do_triggerbot();
-		aimbot::do_aimbot();
-		aimbot::do_autorev();
+		{
+			aimbot::do_aimbot();
+			aimbot::do_autorev();
+			triggerbot::do_triggerbot();
+		}
 		prediction::end_prediction(ctx::command, ctx::local_player);
 		anti_aim::do_anti_aim();
 		//dx_render::dx_render->reset();
 		#if ISO_CHROMA
-		chroma::get().in_game();
+		//chroma::get().in_game();
 		#endif
 
 		if (vars::visuals::thirdperson_angle == 0 && !*ctx::send_packet) {
@@ -35,6 +37,11 @@ namespace hooks {
 			ctx::antiaim_angle = ctx::command->viewangles;
 			ctx::fakelag_position = ctx::local_player->get_abs_origin();
 			ctx::fake_angle = ctx::command->viewangles;
+		}
+
+		if (vars::visuals::thirdperson_angle == 0 && interfaces::engineclient->get_net_channel_info()->m_nChokedPackets < 1)
+		{
+			ctx::real_angle = ctx::fake_angle; //pakifix :D
 		}
 
 		return false;
@@ -146,8 +153,8 @@ namespace hooks {
 			font::tab_font = interfaces::surface->create_font();
 			interfaces::surface->set_font_glyph_set(font::tab_font, xorstr("Impact"), 36, 500, 0, 0, FONTFLAG_ANTIALIAS);
 
-			font::calibri = interfaces::surface->create_font();
-			interfaces::surface->set_font_glyph_set(font::calibri, xorstr("Franklin Gothic"), 12, 500, 0, 0, FONTFLAG_DROPSHADOW);
+			font::calibri = interfaces::surface->create_font(); //name font!
+			interfaces::surface->set_font_glyph_set(font::calibri, xorstr("Franklin Gothic"), 12, 500, 0, 0, FONTFLAG_DROPSHADOW | FONTFLAG_ANTIALIAS);
 
 			font::hud = interfaces::surface->create_font();
 			interfaces::surface->set_font_glyph_set(font::hud, xorstr("Roboto"), 129, 800, 0, 0, FONTFLAG_ANTIALIAS);
@@ -195,9 +202,24 @@ namespace hooks {
 		}
 	}
 
-	void __fastcall hooks::draw_model_exeute(imodel_render* ecx, PVOID edx, model_render_info &entity_info, matrix3x4_t* custom_bones) {
-		hook::render_hook->un_hook_function(19);
+	constexpr float flDefaultColor[3] = { 1, 1, 1 };
+
+	void __fastcall hooks::draw_model_exeute(imodel_render* ecx, PVOID edx, model_render_info& entity_info, matrix3x4_t* custom_bones) {
 		hook::render_hook->hook_function(hooks::draw_model_exeute, 19);
+		static auto original_draw_model_execute = hook::render_hook->get_original_function<decltype(&hooks::draw_model_exeute)>(19);
+		const char* model = interfaces::model_info->get_model_name(entity_info.model);
+		if (!model)
+			return;
+
+		if (strstr(model, "arms")) //remove arms for testing.
+			return;
+
+		original_draw_model_execute(ecx, edx, entity_info, custom_bones);
+
+		interfaces::render_view->set_blend(1);
+		interfaces::render_view->set_colour_modulation(flDefaultColor);
+		interfaces::model_render->force_material_override(nullptr);
+		hook::render_hook->un_hook_function(19);
 	}
 
 	void __fastcall hooks::frame_stage_notify(ibaseclientdll* ecx, PVOID edx, client_frame_stage_t stage) {
@@ -209,7 +231,9 @@ namespace hooks {
 				case FRAME_NET_UPDATE_POSTDATAUPDATE_START: {
 					
 					resolver::do_resolve();
-					//visuals::render_glow_on_pdus(ctx::local_player);
+
+					//disable interp on local for next tick
+					ctx::local_player->set_m_feffects(EF_NOINTERP);
 
 				} break;
 				case FRAME_NET_UPDATE_POSTDATAUPDATE_END: {
@@ -235,14 +259,11 @@ namespace hooks {
 				} break;
 				case FRAME_NET_UPDATE_END: break;
 				case FRAME_RENDER_START: {
-					if (ctx::in_thirdperson) {
-						float &eye_angles_y = *reinterpret_cast<float*>(reinterpret_cast<DWORD>(ctx::local_player) + CNetVars::get().get_offset(xorstr("DT_BasePlayer"), xorstr("pl"), xorstr("deadflag")) + 8);
-						float &eye_angles_x = *reinterpret_cast<float*>(reinterpret_cast<DWORD>(ctx::local_player) + CNetVars::get().get_offset(xorstr("DT_BasePlayer"), xorstr("pl"), xorstr("deadflag")) + 4);
 
-						if (ctx::local_player && !ctx::local_player->is_dead()) {
-							eye_angles_x = ctx::antiaim_angle.x;
-							eye_angles_y = ctx::antiaim_angle.y;
-							visuals::render_fake_hitboxes();
+					if (ctx::in_thirdperson) {
+
+						if (ctx::local_player && !ctx::local_player->is_dead() && (vars::hvh::anti_aim_pitch || vars::hvh::anti_aim_yaw)) {
+							interfaces::prediction->SetLocalViewAngles(ctx::antiaim_angle); //autism.
 						}
 					}
 					//visuals::render_glow_on_frs(ctx::local_player);
@@ -276,6 +297,17 @@ namespace hooks {
 		}
 		original_frame_stage(ecx, edx, stage);
 	}
+
+	void __fastcall hooks::run_command(c_base_player* ent, c_user_cmd* cmd, CMoveHelper* pmove)
+	{
+		static auto original_run_command = hook::prediction_hook->get_original_function<decltype(&hooks::run_command)>(17);
+		original_run_command(ent, cmd, pmove);
+
+		if (pmove && !interfaces::move_helper)
+			interfaces::move_helper = pmove;
+
+	}
+
 	void __fastcall hooks::override_view(void* ecx, void* edx, c_view_setup* setup) {
 		static auto original_override_view = hook::client_mode_hook->get_original_function<decltype(&hooks::override_view)>(16);
 		original_override_view(ecx, edx, setup);
@@ -317,36 +349,11 @@ namespace hooks {
 
 				if (vars::visuals::thirdperson)
 				{
-					//ray_t ray; trace_t trace;
-					//trace_filter filt; filt.skip = ctx::local_player;
 
-					//vec3_t offset, origin, forward;
-					//interfaces::engineclient->get_view_angles(offset);
-
-					//utilities::angle_vectors(offset, &forward);
-
-					//offset.z = vars::visuals::thirdperson_dist;
-
-					//origin = ctx::local_player->get_eye_position();
-
-					//ray.init(origin, origin - (forward * offset.z));
-					//interfaces::enginetrace->trace_ray(ray, MASK_NPCWORLDSTATIC, &filt, &trace);
-
-					//clamp(trace.fraction, 0.f, 1.f);
-					//offset.z *= trace.fraction;
-
-					//setup->origin = offset;
 				}
 			}
 		}
 	}
-	//long __fastcall hooks::endscene(IDirect3DDevice9* device) {
-	//	return hook::endscene_hook->get_original_function<decltype(&hooks::endscene)>(42)(device);
-	//}
-
-	//long __fastcall hooks::reset(IDirect3DDevice9* device, D3DPRESENT_PARAMETERS* present_params) {
-	//	return hook::reset_hook->get_original_function<decltype(&hooks::reset)>(16)(device, present_params);
-	//}
 
 	void __fastcall hooks::scene_end(void* ecx, void* edx) {
 		static auto original_scene_end = hook::render_hook->get_original_function<decltype(&hooks::scene_end)>(9);
@@ -755,12 +762,13 @@ namespace setup {
 		interfaces::material_system = static_cast<imaterial_system*>(mat_sys(xorstr("VMaterialSystem081"), nullptr));
 		interfaces::render_view		= static_cast<irender_view*>(engine(xorstr("VEngineRenderView014"), nullptr));
 		interfaces::game_movement	= static_cast<igame_movement*>(client(xorstr("GameMovement001"), nullptr));
-		interfaces::prediction		= static_cast<iprediction*>(client(xorstr("VClientPrediction001"), nullptr));
+		interfaces::prediction		= static_cast<C_Prediction*>(client(xorstr("VClientPrediction001"), nullptr));
 
 		interfaces::engineclient = static_cast<ivengineclient*>(engine(xorstr("VEngineClient013"), nullptr));
 		interfaces::enginetrace	 = static_cast<ienginetrace*>(engine(xorstr("EngineTraceClient003"), nullptr));
 		interfaces::debugoverlay = static_cast<ivdebugoverlay*>(engine(xorstr("VDebugOverlay003"), nullptr));
 		interfaces::enginevgui	 = static_cast<ienginevgui*>(engine(xorstr("VEngineVGui001"), nullptr));
+		interfaces::random_seed	 = *reinterpret_cast<int32_t**>(utilities::find_signature(xorstr("client.dll"), "C7 05 ? ? ? ? ? ? ? ? 5D C3 8B 40 34") + 0x2);
 		interfaces::efx			 = static_cast<ivefx*>(engine(xorstr("VEngineEffects001"), nullptr));
 
 		interfaces::globals		= *reinterpret_cast<global_vars_base**>(utilities::find_signature(xorstr("engine.dll"), xorstr("A1 ? ? ? ? 8B 11 68")) + 8);
@@ -894,6 +902,10 @@ namespace setup {
 			hook::render_hook = std::make_unique<vmt_manager>(interfaces::render_view);
 			hook::render_hook->hook_function(reinterpret_cast<void*>(hooks::scene_end), 9);
 		}
+		if (interfaces::move_helper != nullptr) { //uuuuugggghhhhhhh kill me
+			hook::prediction_hook = std::make_unique<vmt_manager>(interfaces::move_helper);
+			hook::render_hook->hook_function(reinterpret_cast<void*>(hooks::run_command), 17);
+		}
 
 	}
 
@@ -910,7 +922,6 @@ namespace setup {
 
 		hook::render_hook->un_hook_function(9);
 		hook::render_hook->un_hook_function(19);
-		chroma::get().kill();
 		Sleep(150);
 		//FreeLibraryAndExitThread(module, 0);
 		exit(0);

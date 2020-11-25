@@ -45,11 +45,22 @@ namespace chams {
 			\n}\n"
 		};
 
-		const char* baseType = (flat ? "UnlitGeneric": "VertexLitGeneric");
-		char material[512];
-		sprintf_s(material, sizeof(material), tmp, baseType, basetexture.c_str(), add_shine ? "env_cubemap" : "", add_shine ? 1 : 0, add_shine ? 1 : 0, (ignorez) ? 1 : 0, (wireframe) ? 1 : 0);
+		//proxies struct
+		/*
+			\n\t\t\"Sine\"\
+			\n\t\t\{\
+			\n\t\t\t\"resultVar\" \$cloakfactor\"\
+			\n\t\t\t\"sineperiod\" \"4\"\
+			\n\t\t\t\"sinemin\" \"0.33\"\
+			\n\t\t\t\"sinemax\" \"0.77\"\
+			\n\t\t\}\
+			\n\t\}\
+		*/
 
-		char name[512];
+		const char* baseType = (flat ? "UnlitGeneric": "VertexLitGeneric");
+		char material[1024];
+		sprintf_s(material, sizeof(material), tmp, baseType, basetexture.c_str(), add_shine ? "env_cubemap" : "", add_shine ? 1 : 0, add_shine ? 1 : 0, (ignorez) ? 1 : 0, (wireframe) ? 1 : 0);
+		char name[1024];
 		sprintf_s(name, sizeof(name), "#textured_cham_material%i.vmt", created);
 		created++;
 

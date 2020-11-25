@@ -60,6 +60,15 @@ namespace ctx {
 	extern vec3_t			camera_angs;
 
 	extern std::string		map_name;
+
+	extern vec3_t			smooth_start;
+	extern float			smooth_start_time;
+	extern int				old_hit_scan;
+	extern bool				smooth_finished;
+	extern float			smooth_percentage_done;
+	extern bool				has_flicked;
+		   
+	extern c_base_player*	old_aimbot_target;
 }
 
 #endif // !GLOBAL_H

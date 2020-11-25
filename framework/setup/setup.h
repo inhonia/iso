@@ -14,6 +14,7 @@ namespace hooks {
 	extern void __fastcall  frame_stage_notify(ibaseclientdll* ecx, PVOID edx, client_frame_stage_t stage);
 	extern void __fastcall  override_view(void* ecx, void* edx, c_view_setup* setup);
 	extern void __fastcall  scene_end(void* ecx, void* edx);
+	extern void __fastcall	run_command(c_base_player* ent, c_user_cmd* cmd, CMoveHelper* pmove);
 	//extern long __fastcall	endscene(IDirect3DDevice9* device);
 	//extern long __fastcall	reset(IDirect3DDevice9* device, D3DPRESENT_PARAMETERS* present_params);
 }

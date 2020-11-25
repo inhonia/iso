@@ -27,6 +27,9 @@ namespace vars {
 		//int smoothing = 0;
 		int smoothingx = 0;
 		int smoothingy = 0;
+		int smoothtime = 0;
+		int addl_smoothing = 0;
+		int smooth_type = 0;
 		bool smoothing = false;
 		bool assist = false;
 		bool bullet_time = false;
