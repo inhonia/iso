@@ -26,6 +26,9 @@ namespace vars {
 		//extern int smoothing;
 		extern int smoothingx;
 		extern int smoothingy;
+		extern int smoothtime;
+		extern int addl_smoothing;
+		extern int smooth_type;
 		extern bool smoothing;
 		extern bool assist;
 		extern bool hitscan;

@@ -11,6 +11,7 @@ namespace hook {
 	extern std::unique_ptr<vmt_manager> render_hook;
 	extern std::unique_ptr<vmt_manager> endscene_hook;
 	extern std::unique_ptr<vmt_manager> reset_hook;
+	extern std::unique_ptr<vmt_manager> prediction_hook;
 }
 
 #endif // !HOOKS_H

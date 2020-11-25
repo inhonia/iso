@@ -40,6 +40,7 @@ typedef game_trace trace_t;
 #include "engine/ieventmanager.h"
 #include "../iglowobject.h"
 #include "../igamemovement.h"
+#include "../imovehelper.h"
 #include "../iprediction.h"
 
 // public

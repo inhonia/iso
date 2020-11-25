@@ -25,7 +25,7 @@ namespace prediction {
 	}
 
 	void run_prediction(c_user_cmd* cmd, c_base_player* local) {
-		if (vars::aimbot::smoothing || local->get_life_state() != LIFE_ALIVE)
+		if (local->get_life_state() != LIFE_ALIVE)
 			return;
 
 		local->set_current_command(cmd);
@@ -46,18 +46,21 @@ namespace prediction {
 
 		//correct time
 		interfaces::globals->curtime = TICKS_TO_TIME(get_tick_base(cmd, local));
-		interfaces::globals->frametime = interfaces::globals->interval_per_tick;
+		interfaces::globals->frametime = (interfaces::prediction->m_bEnginePaused ? 0.0f : interfaces::globals->interval_per_tick);
 		interfaces::globals->tickcount = get_tick_base(cmd, local);
 
 		interfaces::prediction->m_bFirstTimePredicted = false;
 		interfaces::prediction->m_bInPrediction = true;
 
 		//start prediction
-		//interfaces::prediction->set_local_view_angles(cmd->viewangles);
+		interfaces::prediction->SetLocalViewAngles(cmd->viewangles);
+
+		//interfaces::move_helper->SetHost(local);
+
 		interfaces::game_movement->start_track_prediction_errors(local);
-		interfaces::prediction->setup_move(local, cmd, &move_data);
+		interfaces::prediction->SetupMove(local, cmd, interfaces::move_helper, &move_data);
 		interfaces::game_movement->process_movement(local, &move_data);
-		interfaces::prediction->finish_move(local, cmd, &move_data);
+		interfaces::prediction->FinishMove(local, cmd, &move_data);
 
 		local->set_tickbase(old_tick_base);
 
@@ -66,8 +69,10 @@ namespace prediction {
 	}
 
 	void end_prediction(c_user_cmd* cmd, c_base_player* local) {
-		if (vars::aimbot::smoothing)
+		if (local->get_life_state() != LIFE_ALIVE)
 			return;
+
+		//interfaces::move_helper->SetHost(nullptr);
 
 		//finish tracking prediction errors lol
 		interfaces::game_movement->finish_track_prediction_errors(local);

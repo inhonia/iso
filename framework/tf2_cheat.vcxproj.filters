@@ -62,15 +62,6 @@
     <ClCompile Include="renderer.cpp">
       <Filter>d3dx</Filter>
     </ClCompile>
-    <ClCompile Include="customeffects.cpp">
-      <Filter>modules\chroma_impl</Filter>
-    </ClCompile>
-    <ClCompile Include="modules\chroma\inc\ChromaSDKImpl.cpp">
-      <Filter>modules\chroma_impl\chroma sdk</Filter>
-    </ClCompile>
-    <ClCompile Include="modules\chroma\inc\FrameController.cpp">
-      <Filter>modules\chroma_impl\chroma sdk</Filter>
-    </ClCompile>
     <ClCompile Include="critbucket.cpp">
       <Filter>modules\crits</Filter>
     </ClCompile>
@@ -224,24 +215,6 @@
     <ClInclude Include="renderer.h">
       <Filter>d3dx</Filter>
     </ClInclude>
-    <ClInclude Include="customeffects.h">
-      <Filter>modules\chroma_impl</Filter>
-    </ClInclude>
-    <ClInclude Include="modules\chroma\inc\ChromaSDKImpl.h">
-      <Filter>modules\chroma_impl\chroma sdk</Filter>
-    </ClInclude>
-    <ClInclude Include="modules\chroma\inc\FrameController.h">
-      <Filter>modules\chroma_impl\chroma sdk</Filter>
-    </ClInclude>
-    <ClInclude Include="modules\chroma\inc\RzChromaSDKDefines.h">
-      <Filter>modules\chroma_impl\chroma sdk</Filter>
-    </ClInclude>
-    <ClInclude Include="modules\chroma\inc\RzChromaSDKTypes.h">
-      <Filter>modules\chroma_impl\chroma sdk</Filter>
-    </ClInclude>
-    <ClInclude Include="modules\chroma\inc\RzErrors.h">
-      <Filter>modules\chroma_impl\chroma sdk</Filter>
-    </ClInclude>
     <ClInclude Include="critbucket.h">
       <Filter>modules\crits</Filter>
     </ClInclude>
@@ -268,6 +241,9 @@
     </ClInclude>
     <ClInclude Include="md5.h">
       <Filter>sdk\md5</Filter>
+    </ClInclude>
+    <ClInclude Include="imovehelper.h">
+      <Filter>sdk\engine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -340,17 +316,11 @@
     <Filter Include="modules\events">
       <UniqueIdentifier>{f0daf10b-dd4c-4871-92d0-73e2860ce9e8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="modules\chroma_impl">
-      <UniqueIdentifier>{3ec16402-6d5c-40a3-9ad9-7f303f706e68}</UniqueIdentifier>
-    </Filter>
     <Filter Include="modules\triggerbot">
       <UniqueIdentifier>{a7dcdf83-021d-4e99-be47-651c813257e4}</UniqueIdentifier>
     </Filter>
     <Filter Include="d3dx">
       <UniqueIdentifier>{53b0d393-006d-4292-a363-376742675cb1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="modules\chroma_impl\chroma sdk">
-      <UniqueIdentifier>{2721be07-5bc4-4f77-b5f9-0bbaa51aab27}</UniqueIdentifier>
     </Filter>
     <Filter Include="modules\crits">
       <UniqueIdentifier>{5511bae4-a135-48a9-8cd2-e9daa30a18f0}</UniqueIdentifier>

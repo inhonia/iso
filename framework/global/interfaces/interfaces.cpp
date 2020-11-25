@@ -9,7 +9,8 @@ namespace interfaces {
 	imaterial_system*		interfaces::material_system;
 	irender_view*			interfaces::render_view;
 	igame_movement*			interfaces::game_movement;
-	iprediction*			interfaces::prediction;
+	C_Prediction*			interfaces::prediction;
+	CMoveHelper*			interfaces::move_helper;
 
 	ivengineclient*			interfaces::engineclient;
 	ienginetrace*			interfaces::enginetrace;

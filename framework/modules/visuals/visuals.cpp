@@ -316,10 +316,8 @@ namespace visuals {
 			interfaces::surface->draw_filled_rect(c_w - 1, c_h - 3, c_w - 1 + 2, c_h - 3 + 6);
 
 
-			if (vars::hvh::yaw_resolver && vars::aimbot::enabled) { ///TODO: update towards aimbot target shit now.
-				//draw::draw_string_centered(c_w, c_h + 30, colour_t(255, 255, 255), font::smallfont, xorstr("MISSED: %d"), ctx::shots_missed);
-				//draw::draw_string_centered(c_w, c_h + 37, colour_t(255, 255, 255), font::smallfont, xorstr("FIRED: %d"), ctx::shots_fired);
-				//draw::draw_string_centered(c_w, c_h + 44, colour_t(255, 255, 255), font::smallfont, xorstr("HEADSHOTS: %d"), ctx::shots_hit_headshot);
+			if (vars::aimbot::smoothing && vars::aimbot::enabled) {
+				//smoothing info lol
 			}
 		}
 
@@ -904,22 +902,24 @@ namespace visuals {
 			if (ctx::local_player->get_life_state() != LIFE_ALIVE)
 				return;
 			c_base_weapon* local_weapon = ctx::local_player->get_active_weapon();
-			if (!local_weapon) {
-				return;
-			}
-
-			bool is_projectile_weapon = utilities::is_projectile(ctx::local_player, local_weapon);
-			if (is_projectile_weapon) {
-				c_user_cmd* command = ctx::command;
-				if (entity != aimbot::get_closest_enemy(ctx::local_player, command, 85))
-					return;
-				vec3_t predicted = entity->get_world_space_center(), screen;
-				aimbot::projectile_prediction(ctx::local_player, entity, local_weapon, predicted);
-				//if (world_to_screen(predicted, screen)) {
-				//	draw::draw_filled_rect(screen[0], screen[1], 9, 9, esp_colour);
-				//	draw::draw_outlined_rect(screen[0], screen[1], 9, 9, colour_t(0, 0, 0, player_alpha[entity->get_index()]));
-				//}
-				draw::draw_sphere(predicted, 8, 0, 1, esp_colour);
+			if (local_weapon) {
+				bool is_projectile_weapon = utilities::is_projectile(ctx::local_player, local_weapon);
+				if (is_projectile_weapon) {
+					c_user_cmd* command = ctx::command;
+					if (entity == aimbot::get_closest_enemy(ctx::local_player, command, 85))
+					{
+						vec3_t predicted = entity->get_world_space_center(), space_center = entity->get_world_space_center(), screen, wsc_screen;
+						aimbot::projectile_prediction(ctx::local_player, entity, local_weapon, predicted, QUALITY_MEDIUM);
+						if (world_to_screen(predicted, screen) && world_to_screen(space_center, wsc_screen)) {
+							draw::draw_line(wsc_screen[0], wsc_screen[1], screen[0], screen[1], colour_t(0, 0, 0, 144));
+							draw::draw_line(wsc_screen[0], wsc_screen[1] + 1, screen[0], screen[1] + 1, colour_t(0, 0, 0, 144));
+							draw::draw_line(wsc_screen[0], wsc_screen[1] - 1, screen[0], screen[1] - 1, colour_t(0, 0, 0, 144));
+							draw::draw_filled_circle(screen[0], screen[1], 7, colour_t(0, 0, 0, 144));
+							draw::draw_filled_circle(screen[0], screen[1], 5, esp_colour);
+						}
+					}
+					//draw::draw_sphere(predicted, 8, 0, 1, esp_colour);
+				}
 			}
 		}
 
@@ -1358,6 +1358,10 @@ namespace visuals {
 		}
 		//draw::draw_string_centered(x + (w / 2), y, esp_colour, font::calibri, model_name);
 		//draw::draw_string_centered(x + (w / 2), y - 9, esp_colour, font::calibri, "id: %i", model_id);
+		if (model_id == CTFGlow)
+		{
+			draw::draw_string_centered(x + (w / 2), y, esp_colour, font::calibri, xorstr("this nigga GLOWIN BRUH"));
+		}
 	}
 
 	bool visuals::world_to_screen(vec3_t &origin, vec3_t &screen) {

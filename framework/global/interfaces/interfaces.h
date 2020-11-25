@@ -16,7 +16,8 @@ namespace interfaces {
 	extern imaterial_system*	material_system;
 	extern irender_view*		render_view;
 	extern igame_movement*		game_movement;
-	extern iprediction*			prediction;
+	extern C_Prediction*		prediction;
+	extern CMoveHelper*			move_helper;
 
 	extern ivengineclient*		engineclient;
 	extern ienginetrace*		enginetrace;

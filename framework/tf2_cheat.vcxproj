@@ -44,7 +44,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="critbucket.cpp" />
-    <ClCompile Include="customeffects.cpp" />
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="notify.cpp" />
     <ClCompile Include="prediction.cpp" />
@@ -60,8 +59,6 @@
     <ClCompile Include="modules\aimbot\aimbot.cpp" />
     <ClCompile Include="modules\anti_aim\anti_aim.cpp" />
     <ClCompile Include="modules\chams\chams.cpp" />
-    <ClCompile Include="modules\chroma\inc\ChromaSDKImpl.cpp" />
-    <ClCompile Include="modules\chroma\inc\FrameController.cpp" />
     <ClCompile Include="modules\miscellanous\miscellanous.cpp" />
     <ClCompile Include="modules\position_adjusment\position_adjustment.cpp" />
     <ClCompile Include="modules\triggerbot\triggerbot.cpp" />
@@ -76,9 +73,9 @@
     <ClInclude Include="angle.h" />
     <ClInclude Include="bsp_flags.h" />
     <ClInclude Include="critbucket.h" />
-    <ClInclude Include="customeffects.h" />
     <ClInclude Include="igamemovement.h" />
     <ClInclude Include="iglowobject.h" />
+    <ClInclude Include="imovehelper.h" />
     <ClInclude Include="iprediction.h" />
     <ClInclude Include="md5.h" />
     <ClInclude Include="notify.h" />
@@ -101,11 +98,6 @@
     <ClInclude Include="modules\aimbot\aimbot.h" />
     <ClInclude Include="modules\anti_aim\anti_aim.h" />
     <ClInclude Include="modules\chams\chams.h" />
-    <ClInclude Include="modules\chroma\inc\ChromaSDKImpl.h" />
-    <ClInclude Include="modules\chroma\inc\FrameController.h" />
-    <ClInclude Include="modules\chroma\inc\RzChromaSDKDefines.h" />
-    <ClInclude Include="modules\chroma\inc\RzChromaSDKTypes.h" />
-    <ClInclude Include="modules\chroma\inc\RzErrors.h" />
     <ClInclude Include="modules\miscellanous\miscellanous.h" />
     <ClInclude Include="modules\position_adjusment\position_adjustment.h" />
     <ClInclude Include="modules\triggerbot\triggerbot.h" />

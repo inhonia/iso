@@ -1,7 +1,5 @@
 #include "../../main.h"
-
 inline float dist(vec3_t myPos, vec3_t enPos) { return sqrt((myPos.x - enPos.x) * (myPos.x - enPos.x) + (myPos.y - enPos.y) * (myPos.y - enPos.y) + (myPos.z - enPos.z) * (myPos.z - enPos.z)); }
-
 auto is_headshot_weapon = [&](c_base_player* local_player, c_base_weapon* local_weapon) {
 	if (local_weapon->get_slot() == 0 && local_player->get_class_num() == TF2_Sniper)
 		if (local_weapon->get_item_definition_index() != WPN_Huntsman && local_weapon->get_item_definition_index() != WPN_CompoundBow)
@@ -96,18 +94,29 @@ namespace aimbot {
 	void aimbot::do_aimbot() {
 		c_base_player* local_player = ctx::local_player; c_user_cmd* command = ctx::command;
 
-		if (!ctx::local_player || ctx::local_player->is_dead() || !ctx::command) { //sanity checks i forget about a lot
+		if (!ctx::local_player || ctx::local_player->is_dead() || !ctx::command) {
 			return;
 		}
 
 		vec3_t vec_old_angles = command->viewangles; float fl_old_forwardmove = command->forward_move, fl_old_sidemove = command->side_move;
 
 		if (!vars::aimbot::enabled || !utilities::is_variable_key_pressed(vars::aimbot::aimbot_key)) {
+			reset_smooth();
 			return;
 		}
 
 		c_base_player* entity = get_best_target(local_player, command);
-		if (!entity) { return; }
+		if (!entity) { 
+		reset_smooth();
+		return;
+		}
+
+		if (ctx::old_aimbot_target != entity)
+		{
+			reset_smooth();
+		}
+
+		ctx::old_aimbot_target = entity;
 
 		c_base_weapon* weapon = local_player->get_active_weapon();
 		if (!weapon) { return; }
@@ -185,20 +194,22 @@ namespace aimbot {
 
 			vec_hitbox = entity->get_world_space_center();
 
-			aimbot::projectile_prediction(local_player, entity, weapon, vec_hitbox);
-			if (!utilities::is_entity_visible(local_player, entity, local_player->get_eye_position(), vec_hitbox)) {
+			aimbot::projectile_prediction(local_player, entity, weapon, vec_hitbox, QUALITY_LOW);
+			vec3_t offset_eye_position;
+			get_projectile_fire_setup(local_player, command->viewangles, get_vec_offset(), &offset_eye_position);
+			if (!utilities::is_entity_visible(local_player, entity, offset_eye_position, vec_hitbox)) {
 				return;
 			}
 		}
-		else if (entity->get_client_class()->class_id == 246) {
+		else if (entity->get_client_class()->class_id == CTFPlayer) {
 
-			aimbot::projectile_prediction(local_player, entity, weapon, vec_hitbox);
+			aimbot::projectile_prediction(local_player, entity, weapon, vec_hitbox, QUALITY_HIGH);
 
-			if (!utilities::is_entity_visible(local_player, entity, local_player->get_eye_position(), vec_hitbox)) {
+			if (!utilities::is_entity_visible(local_player, entity, local_player->get_eye_position(), vec_hitbox) && !utilities::is_projectile(ctx::local_player, weapon)) {
 
 				if (position_adjustment::ticks[entity->get_index()].empty()) { return; }
 
-				if (utilities::is_entity_visible(local_player, entity, local_player->get_eye_position(), position_adjustment::ticks[entity->get_index()].at(size_of_position_adjustment).head_position) && !utilities::is_projectile(ctx::local_player, weapon)) {
+				if (utilities::is_entity_visible(local_player, entity, local_player->get_eye_position(), position_adjustment::ticks[entity->get_index()].at(size_of_position_adjustment).head_position)) {
 
 					vec_hitbox = position_adjustment::ticks[entity->get_index()].at(size_of_position_adjustment).head_position;
 
@@ -207,7 +218,21 @@ namespace aimbot {
 					return;
 				}
 			}
-			else {
+			else if (!utilities::is_entity_visible(local_player, entity, local_player->get_eye_position(), vec_hitbox) && utilities::is_projectile(ctx::local_player, weapon)) {
+				vec3_t offset_eye_position;
+
+				get_projectile_fire_setup(local_player, command->viewangles, get_vec_offset(), &offset_eye_position);
+
+				//if (!calculate_proj_angle(offset_eye_position, vec_hitbox, get_speed(weapon), get_gravity(weapon), vec_hitbox))
+				//	return;
+
+				trace_t trace;
+				ray_t ray;
+				trace_filter filter;
+				utilities::trace_hull(offset_eye_position, vec_hitbox, vec3_t(-2, -2, -2), vec3_t(2, 2, 2), MASK_SOLID_BRUSHONLY, &filter, &trace);
+
+				if (!trace.did_hit())
+					return;
 			}
 
 			if (item_index == WPN_Ambassador || item_index == WPN_FestiveAmbassador) {
@@ -291,30 +316,46 @@ namespace aimbot {
 				vec3_t local_pos = vec_eye_position;
 				vec3_t enemy_pos = hitbox;
 				vec3_t angle = utilities::vectorangles(local_pos, enemy_pos);
-
 				if (vars::aimbot::smoothing) {
-					float smoothingx = vars::aimbot::smoothingx;
-					float smoothingy = vars::aimbot::smoothingy;
+					if ((!aimbot::trace_hit_player() || ctx::smooth_percentage_done < 65) && !ctx::has_flicked) {
+						float smoothtime = fmaxf((float)vars::aimbot::smoothtime / 100, 0.01f);
+						if (vars::aimbot::smooth_type >= 3)//these ones are a bit autistic ong
+							smoothtime *= 3.f;
+						float percentage = clamp(((interfaces::globals->curtime - ctx::smooth_start_time) / smoothtime), 0.f, 1.f);
+						ctx::smooth_finished = (bool)(percentage > 0.99f);
+						ctx::smooth_percentage_done = (percentage * 100);
+						command->viewangles = ctx::smooth_start;
 
-					if (smoothingx < 1) {
-						smoothingx = 1;
+						vec3_t angle_delta = (angle - ctx::smooth_start);
+						clamp_angle(angle_delta);
+						vec3_t ease_ang;
+						switch (vars::aimbot::smooth_type)
+						{
+						case 0: ease_ang = (angle_delta * utilities::ease_out_quad(percentage)); break;
+						case 1: ease_ang = (angle_delta * utilities::ease_in_back(percentage)); break;
+						case 2: ease_ang = (angle_delta * utilities::ease_in_out_sine(percentage)); break;
+						case 3: ease_ang = (angle_delta * utilities::ease_out_elastic(percentage)); break; //boing boing boing :heart_eyes:
+						case 4: ease_ang = (angle_delta * utilities::ease_out_bounce(percentage)); break;
+						}
+
+						command->viewangles += ease_ang;
+						interfaces::engineclient->set_view_angles(command->viewangles);
 					}
+					else
+					{
+						ctx::has_flicked = true;
+						vec3_t currentview, delta, aimdirection = angle;
+						interfaces::engineclient->get_view_angles(currentview);
+						delta = aimdirection - currentview;
+						clamp_angle(delta);
 
-					if (smoothingy < 1) {
-						smoothingy = 1;
+						aimdirection.x = currentview.x + delta.x / 13;
+						aimdirection.y = currentview.y + delta.y / 9;
+
+						clamp_angle(aimdirection);
+						interfaces::engineclient->set_view_angles(aimdirection);
+						command->viewangles = aimdirection;
 					}
-
-					vec3_t currentview, delta, aimdirection = angle;
-					interfaces::engineclient->get_view_angles(currentview);
-					delta = aimdirection - currentview;
-					clamp_angle(delta);
-
-					aimdirection.x = currentview.x + delta.x / smoothingx;
-					aimdirection.y = currentview.y + delta.y / smoothingy;
-
-					clamp_angle(aimdirection);
-					interfaces::engineclient->set_view_angles(aimdirection);
-					command->viewangles = aimdirection;
 
 				}
 				else {
@@ -539,15 +580,25 @@ namespace aimbot {
 						continue;
 					}
 				}
-				else if (entity->get_client_class()->class_id == 246) {
-					if (!utilities::is_entity_visible(local_player, entity, local_player->get_eye_position(), aim_point)) {
+
+				else if (entity->get_client_class()->class_id == CTFPlayer) {
+					if (!utilities::is_entity_visible(local_player, entity, local_player->get_eye_position(), aim_point) && !utilities::is_projectile(ctx::local_player, local_weapon)) {
 						if (position_adjustment::ticks[entity->get_index()].empty()) { continue; }
-						if (utilities::is_entity_visible(local_player, entity, local_player->get_eye_position(), position_adjustment::ticks[entity->get_index()].at(size_of_position_adjustment).head_position) && !utilities::is_projectile(ctx::local_player, local_weapon)) {
+
+						if (utilities::is_entity_visible(local_player, entity, local_player->get_eye_position(), position_adjustment::ticks[entity->get_index()].at(size_of_position_adjustment).head_position)) {
 							aim_point = position_adjustment::ticks[entity->get_index()].at(size_of_position_adjustment).head_position;
 						}
-						else {
-							continue;
-						}
+						else continue;
+					}
+					else if (!utilities::is_entity_visible(local_player, entity, local_player->get_eye_position(), aim_point) && utilities::is_projectile(ctx::local_player, local_weapon))
+					{
+						//entity isn't visible, run projectile prediction to see if we can aim ahead.
+						projectile_prediction(local_player, entity, local_weapon, aim_point, QUALITY_LOW);
+
+						//aim point has been moved to prediction spot -> run trace again
+						if (!utilities::is_entity_visible(local_player, entity, local_player->get_eye_position(), aim_point))
+							continue; //we ain't hitten shit bro
+
 					}
 
 					if (utilities::has_condition(entity, 32) || utilities::has_condition(entity, 16384)) {
@@ -598,6 +649,42 @@ namespace aimbot {
 		return convert_idx_to_player(best_target_index);
 	}
 
+	void aimbot::reset_smooth()
+	{
+		ctx::smooth_start_time = interfaces::globals->curtime;
+		interfaces::engineclient->get_view_angles(ctx::smooth_start);
+		ctx::smooth_finished = false;
+		ctx::smooth_percentage_done = 0.f;
+		ctx::has_flicked = false;
+	}
+
+
+	bool aimbot::trace_hit_player()
+	{
+		vec3_t aim_angles, forward;
+		interfaces::engineclient->get_view_angles(aim_angles);
+
+		utilities::angle_vectors(aim_angles, &forward);
+		forward = forward * 9999 + ctx::local_player->get_eye_position();
+
+		ray_t ray; trace_t trace;
+		trace_filter filt; filt.skip = ctx::local_player;
+
+		ray.init(ctx::local_player->get_eye_position(), forward);
+		interfaces::enginetrace->trace_ray(ray, MASK_AIM, &filt, &trace);
+
+		if (!trace.ent || trace.ent->is_dead() || trace.ent->is_dormant() || trace.ent->get_team_num() == ctx::local_player->get_team_num()
+			|| !(trace.ent->get_client_class()->class_id == CObjectDispenser ||
+			trace.ent->get_client_class()->class_id == CObjectSentrygun ||
+			trace.ent->get_client_class()->class_id == CObjectTeleporter ||
+			trace.ent->get_client_class()->class_id == CTFPlayer) ||
+			trace.hitgroup < 0)
+		{
+			return false;
+		}
+
+		return true;
+	}
 	c_base_player* aimbot::get_closest_enemy(c_base_player* local_player, c_user_cmd* command, int fov) {
 		if (ctx::local_player->get_life_state() != LIFE_ALIVE)
 			return nullptr;
@@ -676,15 +763,26 @@ namespace aimbot {
 						continue;
 					}
 				}
-				else if (entity->get_client_class()->class_id == 246) {
-					if (!utilities::is_entity_visible(local_player, entity, local_player->get_eye_position(), aim_point)) {
+				else if (entity->get_client_class()->class_id == CTFPlayer) {
+					if (!utilities::is_entity_visible(local_player, entity, local_player->get_eye_position(), aim_point) && !utilities::is_projectile(ctx::local_player, local_weapon)) {
 						if (position_adjustment::ticks[entity->get_index()].empty()) { continue; }
-						if (utilities::is_entity_visible(local_player, entity, local_player->get_eye_position(), position_adjustment::ticks[entity->get_index()].at(size_of_position_adjustment).head_position) && !utilities::is_projectile(ctx::local_player, local_weapon)) {
+						if (utilities::is_entity_visible(local_player, entity, local_player->get_eye_position(), position_adjustment::ticks[entity->get_index()].at(size_of_position_adjustment).head_position)) {
 							aim_point = position_adjustment::ticks[entity->get_index()].at(size_of_position_adjustment).head_position;
 						}
 						else {
 							continue;
 						}
+					}
+
+					else if (!utilities::is_entity_visible(local_player, entity, local_player->get_eye_position(), aim_point) && utilities::is_projectile(ctx::local_player, local_weapon))
+					{
+						//entity isn't visible, run projectile prediction.
+						projectile_prediction(local_player, entity, local_weapon, aim_point, QUALITY_HIGH);
+
+						//aim point has been moved to prediction spot -> run trace again
+						
+						if (!utilities::is_entity_visible(local_player, entity, local_player->get_eye_position(), aim_point))
+							continue; //we ain't hitten shit bro
 					}
 
 					if (utilities::has_condition(entity, 32) || utilities::has_condition(entity, 16384)) {
@@ -810,179 +908,51 @@ namespace aimbot {
 		vec3_t v; vel(entity, v); return v;
 	}
 
-	void aimbot::projectile_prediction(c_base_player* local_player, c_base_player* entity, c_base_weapon* local_weapon, vec3_t& vec_hitbox) {
+	void aimbot::get_projectile_fire_setup(c_base_player* local_player, const vec3_t& viewangles, vec3_t offset, vec3_t* source)
+	{
+		if (interfaces::convar->find_variable(xorstr("cl_flipviewmodels"))->get_int())
+			offset.y *= -1.0f;
+
+		vec3_t vecForward = vec3_t(), vecRight = vec3_t(), vecUp = vec3_t();
+		utilities::angle_vectors(viewangles, &vecForward, &vecRight, &vecUp);
+
+		*source = local_player->get_eye_position() + (vecForward * offset.x) + (vecRight * offset.y) + (vecUp * offset.z);
+	}
+
+	bool aimbot::calculate_proj_angle(const vec3_t& local_eyepos, const vec3_t& predicted_pos, const float& speed, const float& gravity, vec3_t& vec_hitbox)
+	{
+		const vec3_t v = (predicted_pos - local_eyepos);
+		const float dx = sqrt(v.x * v.x + v.y * v.y);
+		const float dy = v.z;
+		const float v0 = speed;
+		const float g = (interfaces::convar->find_variable(xorstr("cl_flipviewmodels"))->get_float() * gravity);
+
+		if (g > 0.0f)
+		{
+			const float root = v0 * v0 * v0 * v0 - g * (g * dx * dx + 2.0f * dy * v0 * v0);
+
+			if (root < 0.0f)
+				return false;
+
+			vec_hitbox.x = atan((v0 * v0 - sqrt(root)) / (g * dx));
+			vec_hitbox.y = atan2(v.y, v.x);
+		}
+
+		else
+		{
+			vec3_t vecAngle = utilities::calc_angle(local_eyepos, predicted_pos);
+			vec_hitbox.x = -DEG2RAD(vecAngle.x);
+			vec_hitbox.y = DEG2RAD(vecAngle.y);
+		}
+
+		//out.fTime = dx / (cos(out.fPitch) * v0);
+
+		return true;
+	}
+
+	void aimbot::projectile_prediction(c_base_player* local_player, c_base_player* entity, c_base_weapon* local_weapon, vec3_t& vec_hitbox, int quality) {
 		if (local_player->get_life_state() != LIFE_ALIVE) return;
 		auto item_index = local_weapon->get_item_definition_index();
-		auto get_speed = [&local_player, &local_weapon, &entity, &item_index]() -> float {
-			auto weapon_speed = 0.0f;
-			switch (item_index) {
-			case WPN_DirectHit:
-				weapon_speed = 1980.0f; break;
-			case WPN_BotRocketlauncherB:
-			case WPN_BotRocketlauncherC:
-			case WPN_BotRocketlauncherD:
-			case WPN_BotRocketlauncherEG:
-			case WPN_BotRocketlauncherES:
-			case WPN_BotRocketlauncherG:
-			case WPN_BotRocketlauncherR:
-			case WPN_BotRocketlauncherS:
-			case WPN_FestiveRocketLauncher:
-			case WPN_NewRocketLauncher:
-			case WPN_RocketLauncher:
-			case WPN_Original:
-			case WPN_Airstrike:
-			case WPN_BlackBox:
-			case WPN_CowMangler:
-				weapon_speed = 1100.0f; break;
-			case WPN_RighteousBison:
-				weapon_speed = 1200.0f; break;
-			case WPN_FestiveFlaregun:
-			case WPN_Flaregun:
-			case WPN_Detonator:
-				weapon_speed = 2000.0f; break;
-			case WPN_SyringeGun:
-			case WPN_NewSyringeGun:
-			case WPN_Blutsauger:
-			case WPN_Overdose:
-				weapon_speed = 1000.0f; break;
-			case WPN_RescueRanger:
-			case WPN_Crossbow:
-			case WPN_FestiveCrossbow:
-				weapon_speed = 2400.0f; break;
-			case WPN_GrenadeLauncher:
-			case WPN_NewGrenadeLauncher:
-			case WPN_FestiveGrenadeLauncher:
-				//weapon_speed = 1200.0f; break;
-				weapon_speed = 1065.0f; break; //lets test this...
-			case WPN_LochNLoad:
-				weapon_speed = 1500.0f; break;
-			case WPN_LoooseCannon:
-				weapon_speed = 1440.0f; break;
-			case WPN_IronBomber:
-				weapon_speed = 1216.6f; break;
-			case WPN_ManMelter:
-				weapon_speed = 3000.0f; break;
-			case WPN_LibertyLauncher:
-				weapon_speed = 1540.0f; break;
-			case WPN_Pomson:
-				weapon_speed = 1200.0f; break;
-			case WPN_Huntsman:
-			case WPN_CompoundBow:
-			case WPN_FestiveHuntsman:
-			{
-				float begincharge = local_weapon->begin_charge_time();
-				float charge = begincharge == 0.0f ? 0.0f : interfaces::globals->curtime - begincharge;
-				if (charge > 1.0f)
-					charge = 1.0f;
-				float speed = (800 * charge + 1800);
-				weapon_speed = speed; //wowie zowie
-			} break;
-			case WPN_Flamethrower:
-			case WPN_FestiveFlamethrower:
-			case WPN_NewFlamethrower: //idk what this one is
-			case WPN_BotFlamethrowerB:
-			case WPN_BotFlamethrowerC:
-			case WPN_BotFlamethrowerD:
-			case WPN_BotFlamethrowerEG:
-			case WPN_BotFlamethrowerES:
-			case WPN_BotFlamethrowerG:
-			case WPN_BotFlamethrowerR:
-			case WPN_BotFlamethrowerS:
-			case WPN_Phlogistinator:
-			case WPN_Rainblower:
-			case WPN_Backburner:
-			case WPN_Degreaser:
-			case WPN_DragonsFury:
-				weapon_speed = 3000.0f; break;
-			case WPN_Jarate:
-			case WPN_FestiveJarate:
-			case WPN_Milk:
-			case WPN_MutatedMilk:
-			case 1105: //Self-Aware Beauty Mark
-				weapon_speed = 1000.0f; break;
-			case WPN_StickyLauncher:
-			case WPN_NewStickyLauncher:
-			case WPN_BotStickyD:
-			case WPN_BotStickyB:
-			case WPN_BotStickyC:
-			case WPN_BotStickyEG:
-			case WPN_BotStickyES:
-			case WPN_BotStickyG:
-			case WPN_BotStickyR:
-			case WPN_BotStickyS:
-			case WPN_StickyJumper:
-			{
-				float begincharge = local_weapon->begin_charge_time();
-				float charge = begincharge == 0.0f ? 0.0f : interfaces::globals->curtime - begincharge;
-				if (charge > 1.0f)
-					charge = 1.0f;
-				float speed = (800 * charge + 1600);
-				weapon_speed = speed;
-			} break;
-			default: weapon_speed = 0.0f; break;
-			} 
-			return weapon_speed;
-		};
-		auto get_gravity = [&local_player, &local_weapon, &entity, &item_index]() -> float {
-			auto weapon_gravity = 0.0f;
-			switch (item_index) {
-			case WPN_RescueRanger:
-			case WPN_Crossbow:
-			case WPN_FestiveCrossbow:
-			case WPN_Flaregun:
-			case WPN_FestiveFlaregun:
-			case WPN_ManMelter:
-			case WPN_Detonator:
-				weapon_gravity = 0.2f; break;
-			case WPN_GrenadeLauncher:
-			case WPN_NewGrenadeLauncher:
-			case WPN_FestiveGrenadeLauncher:
-			case WPN_LoooseCannon:
-			case WPN_LochNLoad:
-			case WPN_IronBomber:
-				weapon_gravity = 0.82f; break;
-			case WPN_SyringeGun:
-				weapon_gravity = 0.4f; break;
-			case WPN_Huntsman:
-			case WPN_CompoundBow:
-			case WPN_FestiveHuntsman: //wow this is fucking sauce :weary:
-			{
-				float begincharge = local_weapon->begin_charge_time();
-				float charge = begincharge == 0.0f ? 0.0f : interfaces::globals->curtime - begincharge;
-				if (charge > 1.0f)
-					charge = 1.0f;
-				float gravity = 0.4f - charge / 2;
-				weapon_gravity = gravity;
-			} break;
-			case WPN_Jarate:
-			case WPN_FestiveJarate:
-			case WPN_Milk:
-			case WPN_MutatedMilk:
-			case 1105: //Self-Aware Beauty Mark
-				weapon_gravity = 0.50f; break;
-			case WPN_StickyLauncher:
-			case WPN_NewStickyLauncher:
-			case WPN_BotStickyD:
-			case WPN_BotStickyB:
-			case WPN_BotStickyC:
-			case WPN_BotStickyEG:
-			case WPN_BotStickyES:
-			case WPN_BotStickyG:
-			case WPN_BotStickyR:
-			case WPN_BotStickyS:
-			case WPN_StickyJumper:
-			{
-				float begincharge = local_weapon->begin_charge_time();
-				float charge = begincharge == 0.0f ? 0.0f : interfaces::globals->curtime - begincharge;
-				if (charge > 1.0f)
-					charge = 1.0f;
-				float gravity = 0.4f - charge / 2;
-				weapon_gravity = gravity;
-			} break;
-			default: weapon_gravity = 0.0f; break;
-			}
-			return weapon_gravity;
-		};
 		auto is_projectile_weapon = [&local_player, &local_weapon, &entity, &item_index]() -> bool {
 			auto local_class = local_player->get_class_num(), weapon_slot = local_weapon->get_slot();
 			if (local_player->get_life_state() != LIFE_ALIVE) return false;
@@ -1082,23 +1052,16 @@ namespace aimbot {
 					vec_hitbox[2] += 8.0f; //gamer girl toeaim
 				}
 				else if (local_weapon->get_slot() == 1) {
-					vec_hitbox = entity->get_world_space_center();
+					entity->get_world_space_center();
 				}
 			}
 			else if (local_player->get_class_num() == TF2_Demoman || (local_player->get_class_num() == TF2_Sniper && local_weapon->get_slot() == 1) || local_player->get_class_num() == TF2_Scout) {
-				//vec_hitbox = entity->get_abs_origin();
-
-				vec_hitbox = utilities::get_hitbox_position(entity, 1); //should be pelvis..
-				if (on_ground) {
-					vec_hitbox[2] -= 55.0f; //fuck it lets get wild
-				}
-				else {
-					vec_hitbox[2] -= 75.0f; //lol.. i mean it works doesn't it
-				}
+				vec_hitbox = entity->get_abs_origin();
+				vec_hitbox[2] += 4.0f;
 			}
-			auto hitbox_pred = [&local_player, &entity, &on_ground](vec3_t hitbox, float speed, float gravity, float distance_to_ground) -> vec3_t {
+			auto hitbox_pred = [&local_player, &entity, &on_ground, &local_weapon, quality](vec3_t hitbox, float speed, float gravity, float distance_to_ground) -> vec3_t {
 				vec3_t result = hitbox, bestpos = result;
-				
+				vec3_t eyepos = local_player->get_eye_position();
 				float server_gravity = interfaces::convar->find_variable(xorstr("sv_gravity"))->get_float() / 2;
 				auto vec_velocity = aimbot::estimate_abs_velocity(entity);
 				auto medianTime = (local_player->get_eye_position().dist_to(result) / speed), range = 1.5f,
@@ -1106,28 +1069,68 @@ namespace aimbot {
 
 				if (currenttime <= 0.0f) currenttime = 0.01f;
 
-				auto besttime = currenttime, mindelta = 65536.0f; auto maxsteps = 300;
+				auto besttime = currenttime, mindelta = 65536.0f; auto maxsteps = quality;
+				
 				for (int steps = 0; steps < maxsteps; steps++, currenttime += ((float)(2 * range) / (float)maxsteps)) {
+
 					vec3_t curpos = result; curpos += vec_velocity * currenttime;
 
 					if (distance_to_ground > 0.0f) {
+
 						curpos.z -= currenttime * currenttime * server_gravity * (entity->get_condnew() & TFCondEx2_Parachute ? 0.448f : 1.0f);
+
 						if (curpos.z < result.z - distance_to_ground) {
 							curpos.z = result.z - distance_to_ground;
 						}
 					}
 
-					auto rockettime = (local_player->get_eye_position().dist_to(curpos) / speed);
+					auto rockettime = (eyepos.dist_to(curpos) / speed);
+
 					if (fabs(rockettime - currenttime) < mindelta) {
+
 						besttime = currenttime; bestpos = curpos;
+
 						mindelta = fabs(rockettime - currenttime);
 					}
+
 				}
 				bestpos.z += (server_gravity * besttime * besttime * gravity);
+
+				switch (local_weapon->get_index())
+				{
+					case WPN_GrenadeLauncher:
+					case WPN_NewGrenadeLauncher:
+					case WPN_FestiveGrenadeLauncher:
+					case WPN_LoooseCannon:
+					case WPN_LochNLoad:
+					case WPN_IronBomber:
+					{
+						vec3_t vecOffset(16.0f, 8.0f, -6.0f);
+						get_projectile_fire_setup(local_player, ctx::command->viewangles, vecOffset, &eyepos);
+
+						vec3_t delta = (bestpos - eyepos);
+						float range = delta.normalize();
+
+						float elevation_angle = (range * (local_weapon->get_index() == WPN_LochNLoad ? 0.0075f : 0.013f));
+
+						if (elevation_angle > 45.0f)
+							elevation_angle = 45.0f;
+
+						float s = 0.0f, c = 0.0f;
+						utilities::sin_cos((elevation_angle * PI / 180.0f), &s, &c);
+
+						float elevation = (range * (s / c));
+						bestpos.z += (c > 0.0f ? elevation : 0.0f);
+					}
+					break;
+					
+					default: break;
+				}
+
 				return bestpos;
 			};
 
-			vec_hitbox = hitbox_pred(vec_hitbox, get_speed(), get_gravity(), distance_to_ground());
+			vec_hitbox = hitbox_pred(vec_hitbox, get_speed(local_weapon), get_gravity(local_weapon), distance_to_ground());
 		}
 	}
 

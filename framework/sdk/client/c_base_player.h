@@ -132,6 +132,20 @@ enum c_base_activity
 	ACT_USE, ACT_SIGNAL1, ACT_SIGNAL2, ACT_SIGNAL3,
 };
 
+enum effects_t : int {
+	EF_BONEMERGE = 0x001,	// Performs bone merge on client side
+	EF_BRIGHTLIGHT = 0x002,	// DLIGHT centered at entity origin
+	EF_DIMLIGHT = 0x004,	// player flashlight
+	EF_NOINTERP = 0x008,	// don't interpolate the next frame
+	EF_NOSHADOW = 0x010,	// Don't cast no shadow
+	EF_NODRAW = 0x020,	// don't draw entity
+	EF_NORECEIVESHADOW = 0x040,	// Don't receive no shadow
+	EF_BONEMERGE_FASTCULL = 0x080,	// For use with EF_BONEMERGE. If this is set, then it places this ent's origin at its
+	EF_ITEM_BLINK = 0x100,	// blink an item so that the user notices it.
+	EF_PARENT_ANIMATES = 0x200,	// always assume that the parent entity is animating
+	EF_MAX_BITS = 10
+};
+
 enum class_id {
 	CAI_BaseNPC = 0,
 	CBaseAnimating = 1,
@@ -1402,6 +1416,17 @@ public:
 
 	vec3_t get_vec_origin() {
 		DYNVAR_RETURN(vec3_t, this, "DT_BaseEntity", "m_vecOrigin");
+	}
+
+	void set_m_feffects(int flag) {
+		DYNVAR(e, int, "DT_BaseEntity", "m_fEffects");
+		int a = e.GetValue(this);
+		e.SetValue(this, a |= flag); //str8 autism
+	}
+	
+	void set_ang_rotation(vec3_t ang) {
+		DYNVAR(x, vec3_t, "DT_BaseEntity", "m_angRotation");
+		x.SetValue(this, ang);
 	}
 
 	uintptr_t get_ehandle() {

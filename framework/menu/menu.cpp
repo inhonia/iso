@@ -1356,6 +1356,7 @@ ALPHA TELEGRAM v1.1 BUILD\n"));
 		anti_aim_pitch[9] = { xorstr("off"), xorstr("down"), xorstr("up"), xorstr("fake-down"), xorstr("fake-up"), xorstr("fake zero up"), xorstr("fake zero down"), xorstr("lisp up"), xorstr("lisp down") },
 		main_hitbox[5] = { xorstr("head"), xorstr("body"), xorstr("auto"), xorstr("hitscan"), xorstr("hitscan prefer body") },
 		yaw_types[3] = { xorstr("static"), xorstr("edge"), xorstr("spin") },
+		smooth_types[5] = { xorstr("out quad"), xorstr("in back"), xorstr("in-out sine"), xorstr("out elastic"), xorstr("out bounce") },
 		yaw_select[2] = { xorstr("real"), xorstr("fake") },
 
 		keys[11] = { xorstr("always"), xorstr("mouse1"), xorstr("mouse2"), xorstr("mouse3"), xorstr("mouse4"), xorstr("mouse5"), xorstr("shift"), xorstr("alt"), xorstr("f"), xorstr("c"), xorstr("z") },
@@ -1399,15 +1400,16 @@ ALPHA TELEGRAM v1.1 BUILD\n"));
 
 						}
 						else {
-							slider(40, xorstr("vertical smoothing"), &vars::aimbot::smoothingx, "", 1);
-							slider(40, xorstr("horizontal smoothing"), &vars::aimbot::smoothingy, "", 1);
+							//slider(40, xorstr("vertical smoothing"), &vars::aimbot::smoothingx, "", 1);
+							//slider(40, xorstr("horizontal smoothing"), &vars::aimbot::smoothingy, "", 1);
+							combobox(5, xorstr("smooth type"), smooth_types, &vars::aimbot::smooth_type);
+							slider(100, xorstr("smooth time"), &vars::aimbot::smoothtime, "ms", 5);
 							checkbox(xorstr("autoshoot"), &vars::aimbot::autoshoot);
 							checkbox(xorstr("autoscope"), &vars::aimbot::autoscope);
 							checkbox_colour(xorstr("draw fov"), &vars::aimbot::drawfov, &vars::colour::aimbot_fov);
 							checkbox(xorstr("wait for charge"), &vars::aimbot::wait_for_charge);
 							checkbox(xorstr("backtracking"), &vars::position_adjustment::enabled);
 							checkbox(xorstr("auto minigun rev"), &vars::aimbot::heavy_autorev);
-							label(xorstr("legitbot is on!"));
 						}
 						groupbox(16, 424, 180, 40, xorstr("page")); {
 							button(xorstr("next page"), &aim_tab_page, false);
