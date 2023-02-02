@@ -1,4 +1,4 @@
 # isopropyl
-*sorta bad* cheat that looks ok.
+big mixed plate of pasta
 
-![Menu Screenshot](https://femboy.life/i/skytuo.png)
+gratz to catberg for the telegram build bot
